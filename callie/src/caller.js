@@ -188,10 +188,55 @@ async function callInteractive(toNumber) {
   return call;
 }
 
+async function fetchCallStatus(callSid) {
+  const config = getConfig();
+  const client = twilio(config.twilio.accountSid, config.twilio.authToken);
+  return client.calls(callSid).fetch();
+}
+
+async function waitForCallCompletion(callSid, opts = {}) {
+  const timeoutMs = opts.timeoutMs ?? 180000;
+  const intervalMs = opts.intervalMs ?? 5000;
+  const finalStatuses = new Set(['completed', 'busy', 'failed', 'no-answer', 'canceled']);
+
+  const start = Date.now();
+  const timeline = [];
+  let lastStatus = null;
+
+  while (Date.now() - start < timeoutMs) {
+    const call = await fetchCallStatus(callSid);
+
+    if (call.status !== lastStatus) {
+      const point = {
+        at: new Date().toISOString(),
+        status: call.status,
+        duration: call.duration,
+        answeredBy: call.answeredBy || null,
+        to: call.to,
+        from: call.from
+      };
+      timeline.push(point);
+      lastStatus = call.status;
+      console.log(`[status] ${point.at} -> ${point.status} (duration=${point.duration || 'n/a'}s, answeredBy=${point.answeredBy || 'n/a'})`);
+    }
+
+    if (finalStatuses.has(call.status)) {
+      return { final: call, timeline };
+    }
+
+    await new Promise(resolve => setTimeout(resolve, intervalMs));
+  }
+
+  const final = await fetchCallStatus(callSid);
+  return { final, timeline, timedOut: true };
+}
+
 module.exports = {
   callWithBriefing,
   callWithText,
   callInteractive,
+  fetchCallStatus,
+  waitForCallCompletion,
   escapeXml,
   briefingToSsml,
   chunkText,

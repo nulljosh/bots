@@ -7,10 +7,11 @@
  *   node index.js briefing      # Preview briefing text (no call)
  *   node index.js schedule      # Start scheduler (calls at 8:00 AM daily)
  *   node index.js test          # Test call with short message
+ *   node index.js debug [to] [text]  # Place call and poll Twilio status to final state
  */
 
 const { execSync } = require('child_process');
-const { callWithBriefing, callWithText, callInteractive } = require('./src/caller');
+const { callWithBriefing, callWithText, callInteractive, waitForCallCompletion } = require('./src/caller');
 const { getBriefing } = require('./src/briefing');
 const { getConfig } = require('./src/config');
 
@@ -126,6 +127,38 @@ switch (command) {
     break;
   }
 
+  case 'debug': {
+    const toNumber = process.argv[3];
+    const text = process.argv.slice(4).join(' ') ||
+      'Debug call from Callie. If you hear this, pick up and hang up so we can verify call status logging.';
+
+    console.log('Placing debug call...');
+    callWithText(text, toNumber)
+      .then(async (call) => {
+        console.log(`Debug call SID: ${call.sid}`);
+        console.log('Polling Twilio status until final state...');
+        const result = await waitForCallCompletion(call.sid, { timeoutMs: 180000, intervalMs: 5000 });
+
+        const final = result.final;
+        console.log('\n=== DEBUG RESULT ===');
+        console.log(`SID: ${final.sid}`);
+        console.log(`From: ${final.from}`);
+        console.log(`To: ${final.to}`);
+        console.log(`Status: ${final.status}`);
+        console.log(`Duration: ${final.duration || 0}s`);
+        console.log(`AnsweredBy: ${final.answeredBy || 'unknown'}`);
+        if (result.timedOut) {
+          console.log('Note: timed out waiting for final state; last known status shown above.');
+        }
+        console.log('====================\n');
+      })
+      .catch(err => {
+        console.error('Debug call failed:', err.message);
+        process.exit(1);
+      });
+    break;
+  }
+
   default:
-    console.log('Usage: node index.js [call|briefing|schedule|say|test|server|interactive]');
+    console.log('Usage: node index.js [call|briefing|schedule|say|test|server|interactive|debug]');
 }
