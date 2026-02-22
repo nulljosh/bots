@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
  * Callie - Interactive Conversation Server
- * Twilio ConversationRelay <-> Claude
+ * Twilio ConversationRelay <-> Codex
  *
  * How it works:
  *   1. Callie makes outbound call to Josh
  *   2. Twilio hits POST /outbound-call for TwiML
  *   3. TwiML starts ConversationRelay session (Twilio handles STT + TTS)
  *   4. WebSocket /ws receives Josh's transcribed speech as text
- *   5. We send text to Claude, stream response back
+ *   5. We send text to Codex, stream response back
  *   6. ConversationRelay speaks Claude's response to Josh
  *
  * Run:
@@ -19,7 +19,6 @@
 const express = require('express');
 const { WebSocketServer } = require('ws');
 const http = require('http');
-const Anthropic = require('@anthropic-ai/sdk');
 const OpenAI = require('openai');
 const { execSync } = require('child_process');
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
@@ -27,11 +26,10 @@ require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const PORT = process.env.PORT || 5050;
 const PUBLIC_URL = process.env.PUBLIC_URL; // e.g. https://xxxx.ngrok.app
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const OLLAMA_API_KEY = process.env.OLLAMA_API_KEY || 'ollama';
 const ollama = new OpenAI({ baseURL: 'http://localhost:11434/v1', apiKey: OLLAMA_API_KEY });
 
-const CLAUDE_MODEL = 'claude-sonnet-4-6';
+const CODEX_MODEL = process.env.CODEX_MODEL || 'gpt-5.3-codex';
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'qwen2.5:3b';
 
 // --- Briefing context fetcher (reuses briefing.js logic inline for Claude system prompt) ---
@@ -157,27 +155,26 @@ wss.on('connection', (ws, req) => {
           }
         };
 
-        // Primary: Claude
+        // Primary: Codex via OpenAI API
         try {
-          const stream = anthropic.messages.stream({
-            model: CLAUDE_MODEL,
+          const codex = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+          const stream = await codex.chat.completions.create({
+            model: CODEX_MODEL,
             max_tokens: 300,
-            system: systemPrompt,
-            messages
+            messages: [{ role: 'system', content: systemPrompt }, ...messages],
+            stream: true
           });
 
-          for await (const event of stream) {
-            if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-              const token = event.delta.text;
-              if (!token) continue;
-              fullResponse += token;
-              sendToken(token);
-            }
+          for await (const chunk of stream) {
+            const token = chunk.choices[0]?.delta?.content || '';
+            if (!token) continue;
+            fullResponse += token;
+            sendToken(token);
           }
-          console.log(`[Claude] ${CLAUDE_MODEL} response: ${fullResponse.substring(0, 100)}...`);
-        } catch (claudeErr) {
+          console.log(`[Codex] ${CODEX_MODEL} response: ${fullResponse.substring(0, 100)}...`);
+        } catch (codexErr) {
           // Fallback: Ollama
-          console.warn(`[Claude] Failed (${claudeErr.message}), falling back to Ollama ${OLLAMA_MODEL}`);
+          console.warn(`[Codex] Failed (${codexErr.message}), falling back to Ollama ${OLLAMA_MODEL}`);
           usedFallback = true;
           fullResponse = '';
 
