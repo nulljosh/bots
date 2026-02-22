@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dominos API</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f7;
+      color: #1d1d1f;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 720px; margin: 0 auto; padding: 80px 24px; }
+    h1 { font-size: 40px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px; }
+    .subtitle { font-size: 18px; color: #86868b; margin-bottom: 48px; }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+    .card h2 { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
+    .features { list-style: none; }
+    .features li {
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .features li:last-child { border-bottom: none; }
+    .features .name { font-weight: 500; }
+    .features .desc { color: #86868b; font-size: 14px; }
+    pre {
+      background: #1d1d1f;
+      color: #f5f5f7;
+      border-radius: 12px;
+      padding: 20px;
+      overflow-x: auto;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    code { font-family: 'SF Mono', Menlo, monospace; }
+    .inline-code {
+      background: #f0f0f0;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: 'SF Mono', Menlo, monospace;
+    }
+    a { color: #0071e3; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .links { margin-top: 48px; text-align: center; }
+    .links a { margin: 0 16px; font-size: 15px; }
+    .endpoint-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .endpoint-table th { text-align: left; padding: 8px 0; border-bottom: 2px solid #e0e0e0; font-weight: 600; }
+    .endpoint-table td { padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+    .endpoint-table td:first-child { font-weight: 500; }
+    .method { font-family: 'SF Mono', Menlo, monospace; font-size: 12px; color: #86868b; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Dominos API</h1>
+    <p class="subtitle">Unofficial reverse-engineered Dominos Pizza API wrapper for Node.js. Zero dependencies.</p>
+
+    <div class="card">
+      <h2>Features</h2>
+      <ul class="features">
+        <li><span class="name">Store Finder</span><span class="desc">Find nearby stores by address</span></li>
+        <li><span class="name">Menu Browser</span><span class="desc">Full menu, categories, search</span></li>
+        <li><span class="name">Order Tracker</span><span class="desc">Track by phone or order key</span></li>
+        <li><span class="name">Order Builder</span><span class="desc">Build, validate, price, place</span></li>
+        <li><span class="name">Coupon Lookup</span><span class="desc">Get coupon details by ID</span></li>
+        <li><span class="name">US + Canada</span><span class="desc">dominos.com and dominos.ca</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Quick Start</h2>
+<pre><code>import { DominosAPI } from './dominos.js';
+
+const api = new DominosAPI({ region: 'ca' });
+
+// Find stores
+const stores = await api.stores.find('20690 40 Ave, Langley, BC');
+
+// Browse menu
+const menu = await api.menu.get(stores[0].StoreID);
+
+// Track an order
+const status = await api.tracker.byPhone('6045342277');</code></pre>
+    </div>
+
+    <div class="card">
+      <h2>Endpoints</h2>
+      <table class="endpoint-table">
+        <tr><th>Endpoint</th><th>Method</th><th>Path</th></tr>
+        <tr><td>Store Locator</td><td class="method">GET</td><td class="inline-code">/power/store-locator</td></tr>
+        <tr><td>Store Profile</td><td class="method">GET</td><td class="inline-code">/power/store/{id}/profile</td></tr>
+        <tr><td>Menu</td><td class="method">GET</td><td class="inline-code">/power/store/{id}/menu</td></tr>
+        <tr><td>Validate Order</td><td class="method">POST</td><td class="inline-code">/power/validate-order</td></tr>
+        <tr><td>Price Order</td><td class="method">POST</td><td class="inline-code">/power/price-order</td></tr>
+        <tr><td>Place Order</td><td class="method">POST</td><td class="inline-code">/power/place-order</td></tr>
+        <tr><td>Track by Phone</td><td class="method">GET</td><td class="inline-code">/orderstorage/GetTrackerData</td></tr>
+      </table>
+    </div>
+
+    <div class="links">
+      <a href="https://github.com/nulljosh/dominos">GitHub</a>
+      <a href="https://github.com/nulljosh/dominos/blob/main/CLAUDE.md">API Docs</a>
+    </div>
+  </div>
+</body>
+</html>

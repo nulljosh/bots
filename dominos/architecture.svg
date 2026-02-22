@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+  <style>
+    .box { fill: #fff; stroke: #d1d1d6; stroke-width: 1.5; rx: 12; }
+    .box-main { fill: #1d1d1f; stroke: none; rx: 14; }
+    .label { fill: #1d1d1f; font-size: 13px; font-weight: 500; }
+    .label-main { fill: #fff; font-size: 16px; font-weight: 600; }
+    .sublabel { fill: #86868b; font-size: 11px; }
+    .line { stroke: #d1d1d6; stroke-width: 1.5; fill: none; }
+    .api-box { fill: #f5f5f7; stroke: #d1d1d6; stroke-width: 1; rx: 10; }
+    .api-label { fill: #86868b; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; }
+    .endpoint { fill: #1d1d1f; font-size: 11px; font-family: 'SF Mono', Menlo, monospace; }
+  </style>
+
+  <!-- Main node -->
+  <rect class="box-main" x="310" y="20" width="180" height="44"/>
+  <text class="label-main" x="400" y="47" text-anchor="middle">DominosAPI</text>
+
+  <!-- Connecting lines from main -->
+  <path class="line" d="M 355 64 L 160 120"/>
+  <path class="line" d="M 400 64 L 400 120"/>
+  <path class="line" d="M 445 64 L 640 120"/>
+
+  <!-- StoreFinder -->
+  <rect class="box" x="70" y="120" width="180" height="44"/>
+  <text class="label" x="160" y="140" text-anchor="middle">StoreFinder</text>
+  <text class="sublabel" x="160" y="155" text-anchor="middle">find · profile</text>
+
+  <!-- Menu -->
+  <rect class="box" x="310" y="120" width="180" height="44"/>
+  <text class="label" x="400" y="140" text-anchor="middle">Menu</text>
+  <text class="sublabel" x="400" y="155" text-anchor="middle">get · search · coupon</text>
+
+  <!-- Tracker -->
+  <rect class="box" x="550" y="120" width="180" height="44"/>
+  <text class="label" x="640" y="140" text-anchor="middle">Tracker</text>
+  <text class="sublabel" x="640" y="155" text-anchor="middle">byPhone · byId · poll</text>
+
+  <!-- Order (separate branch from main) -->
+  <path class="line" d="M 400 64 L 400 90 L 400 200"/>
+  <rect class="box" x="310" y="200" width="180" height="44"/>
+  <text class="label" x="400" y="220" text-anchor="middle">Order</text>
+  <text class="sublabel" x="400" y="235" text-anchor="middle">validate · price · place</text>
+
+  <!-- API endpoints box -->
+  <rect class="api-box" x="50" y="290" width="700" height="190"/>
+  <text class="api-label" x="400" y="312" text-anchor="middle">DOMINOS ENDPOINTS</text>
+
+  <!-- Left column: order.dominos.ca -->
+  <rect class="box" x="80" y="325" width="300" height="140"/>
+  <text class="sublabel" x="230" y="345" text-anchor="middle">order.dominos.ca (Azure)</text>
+  <text class="endpoint" x="100" y="368">GET  /power/store-locator</text>
+  <text class="endpoint" x="100" y="388">GET  /power/store/{id}/profile</text>
+  <text class="endpoint" x="100" y="408">GET  /power/store/{id}/menu</text>
+  <text class="endpoint" x="100" y="428">POST /power/validate-order</text>
+  <text class="endpoint" x="100" y="448">POST /power/price-order</text>
+
+  <!-- Right column: tracker.dominos.com -->
+  <rect class="box" x="420" y="325" width="300" height="140"/>
+  <text class="sublabel" x="570" y="345" text-anchor="middle">tracker.dominos.com (Akamai)</text>
+  <text class="endpoint" x="440" y="368">GET  /orderstorage/GetTrackerData</text>
+  <text class="sublabel" x="440" y="388">?Phone={phone}</text>
+  <text class="sublabel" x="440" y="408">?StoreID={id}&amp;OrderKey={key}</text>
+  <text class="sublabel" x="440" y="438">Response: SOAP XML → JSON</text>
+
+  <!-- Lines from modules to endpoints -->
+  <path class="line" d="M 160 164 L 160 290" stroke-dasharray="4,4"/>
+  <path class="line" d="M 400 244 L 400 290" stroke-dasharray="4,4"/>
+  <path class="line" d="M 640 164 L 640 290" stroke-dasharray="4,4"/>
+</svg>

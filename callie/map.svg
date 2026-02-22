@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <defs>
+    <style>
+      .title { font: bold 24px sans-serif; fill: #1a1a1a; }
+      .subtitle { font: 14px sans-serif; fill: #666; }
+      .box { fill: #f0f7ff; stroke: #2563eb; stroke-width: 2; rx: 8; }
+      .api-box { fill: #fef3c7; stroke: #f59e0b; stroke-width: 2; rx: 8; }
+      .time-box { fill: #dcfce7; stroke: #16a34a; stroke-width: 2; rx: 8; }
+      .label { font: 14px sans-serif; fill: #1a1a1a; text-anchor: middle; }
+      .small { font: 12px sans-serif; fill: #666; text-anchor: middle; }
+      .arrow { stroke: #2563eb; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .success { fill: #16a34a; font: bold 16px sans-serif; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#2563eb" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="400" y="30" class="title" text-anchor="middle">Callie - AI Daily Briefing</text>
+  <text x="400" y="50" class="subtitle" text-anchor="middle">~30 second phone call • Weather • Calendar • Markets • News</text>
+
+  <!-- Scheduler -->
+  <rect x="20" y="80" width="140" height="80" class="time-box"/>
+  <text x="90" y="110" class="label">Scheduler</text>
+  <text x="90" y="130" class="small">9:00 AM daily</text>
+  <text x="90" y="145" class="small">node-cron</text>
+
+  <!-- Data Sources -->
+  <g id="sources">
+    <rect x="220" y="80" width="120" height="60" class="api-box"/>
+    <text x="280" y="105" class="label">Open-Meteo</text>
+    <text x="280" y="125" class="small">Weather</text>
+
+    <rect x="220" y="160" width="120" height="60" class="api-box"/>
+    <text x="280" y="185" class="label">icalBuddy</text>
+    <text x="280" y="205" class="small">Calendar</text>
+
+    <rect x="220" y="240" width="120" height="60" class="api-box"/>
+    <text x="280" y="265" class="label">Yahoo Finance</text>
+    <text x="280" y="285" class="small">S&P 500</text>
+
+    <rect x="220" y="320" width="120" height="60" class="api-box"/>
+    <text x="280" y="345" class="label">News RSS</text>
+    <text x="280" y="365" class="small">2 Headlines</text>
+  </g>
+
+  <!-- Briefing Builder -->
+  <rect x="400" y="80" width="140" height="300" class="box"/>
+  <text x="470" y="110" class="label">briefing.js</text>
+  <text x="470" y="135" class="small">Parallel fetch</text>
+  <text x="470" y="155" class="small">~5s total</text>
+  <text x="470" y="190" class="small">• Deduplicate</text>
+  <text x="470" y="210" class="small">• Skip empty</text>
+  <text x="470" y="230" class="small">• Max 3 events</text>
+  <text x="470" y="250" class="small">• 2 headlines</text>
+  <text x="470" y="285" class="success">30s briefing</text>
+
+  <!-- TwiML/Polly -->
+  <rect x="600" y="80" width="140" height="120" class="box"/>
+  <text x="670" y="110" class="label">caller.js</text>
+  <text x="670" y="130" class="small">TwiML</text>
+  <text x="670" y="150" class="small">Polly Neural</text>
+  <text x="670" y="170" class="small">No SSML</text>
+  <text x="670" y="190" class="small">asyncAmd: true</text>
+
+  <!-- Phone -->
+  <rect x="600" y="240" width="140" height="80" class="box"/>
+  <text x="670" y="270" class="label">Your Phone</text>
+  <text x="670" y="290" class="small">+1 778 846 2726</text>
+  <text x="670" y="305" class="small">31s call</text>
+
+  <!-- Arrows -->
+  <path d="M 160 120 L 220 110" class="arrow"/>
+  <path d="M 160 120 L 220 190" class="arrow"/>
+  <path d="M 160 120 L 220 270" class="arrow"/>
+  <path d="M 160 120 L 220 350" class="arrow"/>
+  
+  <path d="M 340 110 L 400 140" class="arrow"/>
+  <path d="M 340 190 L 400 180" class="arrow"/>
+  <path d="M 340 270 L 400 220" class="arrow"/>
+  <path d="M 340 350 L 400 260" class="arrow"/>
+  
+  <path d="M 540 230 L 600 140" class="arrow"/>
+  <path d="M 670 200 L 670 240" class="arrow"/>
+
+  <!-- Stats Box -->
+  <rect x="20" y="200" width="140" height="140" class="time-box"/>
+  <text x="90" y="225" class="label">Performance</text>
+  <text x="90" y="250" class="small">Before: 63s</text>
+  <text x="90" y="270" class="small">After: 31s</text>
+  <text x="90" y="295" class="success">52% faster</text>
+  <text x="90" y="320" class="small">No errors</text>
+
+  <!-- Cost -->
+  <rect x="600" y="340" width="140" height="60" class="time-box"/>
+  <text x="670" y="365" class="label">Cost</text>
+  <text x="670" y="385" class="small">$0.02/call • $0.60/mo</text>
+
+  <!-- Footer -->
+  <text x="400" y="480" class="subtitle" text-anchor="middle">Production Ready • Twilio + Polly + Open APIs</text>
+</svg>
