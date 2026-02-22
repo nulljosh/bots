@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Callie - AI-powered daily briefing phone calls
+ * Fony - AI-powered daily briefing phone calls
  *
  * Usage:
  *   node index.js call          # Call now with today's briefing
@@ -18,7 +18,7 @@ const { getConfig } = require('./src/config');
 const command = process.argv[2] || 'call';
 
 function notifyFailure(err) {
-  const msg = `Callie failed to call: ${err.message}`;
+  const msg = `Fony failed to call: ${err.message}`;
   try {
     execSync(`/opt/homebrew/bin/imsg send --to +17788462726 --text ${JSON.stringify(msg)}`, { timeout: 10000 });
   } catch (imsgErr) {
@@ -103,7 +103,7 @@ switch (command) {
     client.calls.create({
       from: config.twilio.phoneNumber,
       to: config.yourPhone,
-      twiml: '<Response><Say voice="Polly.Matthew-Neural">Hello Joshua. This is Callie. Your daily briefing system is online and working. Test complete.</Say></Response>'
+      twiml: '<Response><Say voice="Polly.Matthew-Neural">Hello Joshua. This is Fony. Your daily briefing system is online and working. Test complete.</Say></Response>'
     })
     .then(call => console.log(`Test call initiated: ${call.sid}`))
     .catch(err => console.error('Test failed:', err.message));
@@ -130,7 +130,7 @@ switch (command) {
   case 'debug': {
     const toNumber = process.argv[3];
     const text = process.argv.slice(4).join(' ') ||
-      'Debug call from Callie. If you hear this, pick up and hang up so we can verify call status logging.';
+      'Debug call from Fony. If you hear this, pick up and hang up so we can verify call status logging.';
 
     console.log('Placing debug call...');
     callWithText(text, toNumber)

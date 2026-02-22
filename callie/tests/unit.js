@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Callie - Unit Tests
+ * Fony - Unit Tests
  * Tests core logic without making real API calls
  */
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * Callie - Interactive Conversation Server
+ * Fony - Interactive Conversation Server
  * Twilio ConversationRelay <-> Codex
  *
  * How it works:
- *   1. Callie makes outbound call to Josh
+ *   1. Fony makes outbound call to Josh
  *   2. Twilio hits POST /outbound-call for TwiML
  *   3. TwiML starts ConversationRelay session (Twilio handles STT + TTS)
  *   4. WebSocket /ws receives Josh's transcribed speech as text
@@ -74,7 +74,7 @@ function buildSystemPrompt() {
   const context = getBriefingContext();
   const now = new Date().toLocaleString('en-US', { timeZone: 'America/Vancouver', weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 
-  return `You are Callie, Josh's AI assistant calling him on the phone. You're smart, direct, and sharp.
+  return `You are Fony, Josh's AI assistant calling him on the phone. You're smart, direct, and sharp.
 
 Current time: ${now}
 
@@ -119,7 +119,7 @@ app.post('/outbound-call', (req, res) => {
 });
 
 // Health check
-app.get('/', (req, res) => res.json({ status: 'ok', service: 'callie' }));
+app.get('/', (req, res) => res.json({ status: 'ok', service: 'fony' }));
 
 // --- WebSocket server ---
 const server = http.createServer(app);
@@ -231,7 +231,7 @@ wss.on('connection', (ws, req) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Callie conversation server running on port ${PORT}`);
+  console.log(`Fony conversation server running on port ${PORT}`);
   if (PUBLIC_URL) {
     console.log(`Public URL: ${PUBLIC_URL}`);
     console.log(`Twilio webhook: ${PUBLIC_URL}/outbound-call`);

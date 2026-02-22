@@ -1,8 +1,8 @@
-# Callie
+# Fony
 
 AI-powered daily briefing phone calls. Calls you every morning with weather, calendar, stocks, and news.
 
-![Callie Architecture](https://nulljosh.github.io/callie/architecture.svg)
+![Fony Architecture](https://nulljosh.github.io/fony/architecture.svg)
 
 ## Usage
 
@@ -57,7 +57,7 @@ node index.js test
 ## Project Structure
 
 ```
-callie/
+fony/
   index.js          # CLI entry point (call/briefing/schedule/say/test)
   src/
     caller.js       # Twilio outbound call logic
@@ -80,11 +80,11 @@ callie/
 
 1. **Cloudflare Tunnel** (blocks everything below)
    ```bash
-   cloudflared tunnel create callie
-   cloudflared tunnel route dns callie callie.yourdomain.com
-   cloudflared tunnel run callie
+   cloudflared tunnel create fony
+   cloudflared tunnel route dns fony fony.yourdomain.com
+   cloudflared tunnel run fony
    ```
-   Add `PUBLIC_URL=https://callie.yourdomain.com` to `.env`
+   Add `PUBLIC_URL=https://fony.yourdomain.com` to `.env`
 
 2. **Test interactive mode**
    ```bash
@@ -131,7 +131,7 @@ OpenClaw cron (6:30 AM)
 
 1. **Clone and set up base**
    ```bash
-   # Already in ~/Documents/Code/callie
+   # Already in ~/Documents/Code/fony
    npm install @fastify/websocket fastify ws
    ```
 
@@ -194,11 +194,11 @@ PUBLIC_URL=https://...    # ngrok URL
 ```svg
 <svg viewBox="0 0 680 420" width="680" height="420" xmlns="http://www.w3.org/2000/svg" style="font-family:monospace;background:#f8fafc;border-radius:12px">
   <rect width="680" height="420" fill="#f8fafc" rx="12"/>
-  <text x="340" y="28" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e293b">callie — AI briefing phone calls</text>
+  <text x="340" y="28" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e293b">fony — AI briefing phone calls</text>
 
   <!-- Root node -->
   <rect x="290" y="45" width="100" height="34" rx="8" fill="#0071e3"/>
-  <text x="340" y="67" text-anchor="middle" font-size="11" fill="white">callie/</text>
+  <text x="340" y="67" text-anchor="middle" font-size="11" fill="white">fony/</text>
 
   <!-- Dashed lines from root -->
   <line x1="340" y1="79" x2="100" y2="130" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="4,3"/>

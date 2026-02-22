@@ -1,4 +1,4 @@
-# Callie - AI Daily Briefing Phone Calls
+# Fony - AI Daily Briefing Phone Calls
 
 ## Overview
 Production-ready Twilio/Polly system that calls you every morning at 9 AM with a 30-second briefing covering weather, calendar, markets, and news.
@@ -14,11 +14,11 @@ Production-ready Twilio/Polly system that calls you every morning at 9 AM with a
 - LLM: Claude (claude-sonnet-4-6) → Ollama (qwen2.5:3b) fallback
 - Data: Open-Meteo, icalBuddy, Yahoo Finance, Google News RSS
 - Runtime: Node.js
-- GitHub Pages: https://nulljosh.github.io/callie
+- GitHub Pages: https://nulljosh.github.io/fony
 
 ## Project Structure
 ```
-callie/
+fony/
   index.js              # CLI entry point
   src/
     caller.js           # Twilio call logic

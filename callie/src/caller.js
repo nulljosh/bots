@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Callie - Phone Caller
+ * Fony - Phone Caller
  * Makes outbound calls via Twilio with SSML briefing
  */
 

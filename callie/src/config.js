@@ -1,5 +1,5 @@
 /**
- * Callie - Configuration
+ * Fony - Configuration
  * Loads Twilio credentials from env vars or .env file
  */
 

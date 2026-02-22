@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Callie - Test Call Script
+ * Fony - Test Call Script
  * Basic outbound call to verify Twilio integration works
  */
 
@@ -32,7 +32,7 @@ client.calls
   .create({
     from: phoneNumber,
     to: YOUR_PHONE,
-    twiml: '<Response><Say voice="Polly.Matthew">Hello Joshua. This is Claude calling from your Mac mini. The Callie system is now online and working. Phase one complete.</Say></Response>'
+    twiml: '<Response><Say voice="Polly.Matthew">Hello Joshua. This is Claude calling from your Mac mini. The Fony system is now online and working. Phase one complete.</Say></Response>'
   })
   .then(call => {
     console.log('✅ Call initiated!');

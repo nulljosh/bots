@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Callie - Daily Briefing Generator
+ * Fony - Daily Briefing Generator
  * Fetches weather, calendar, news directly (no /day dependency)
  */
 
@@ -11,6 +11,7 @@ const fs = require('fs');
 const path = require('path');
 
 const FINN_INDEX = path.join(process.env.HOME, 'Documents/Code/finn/index.html');
+const REMINDERS_FILE = path.join(__dirname, '..', 'data', 'reminders.json');
 
 function fetch(url, timeoutMs = 8000) {
   return new Promise((resolve, reject) => {
@@ -211,6 +212,25 @@ async function getPortfolio() {
   }
 }
 
+async function getActionItems() {
+  try {
+    const data = JSON.parse(fs.readFileSync(REMINDERS_FILE, 'utf8'));
+    const today = new Date().toISOString().split('T')[0];
+    const active = data.filter(r => r.date <= today);
+    if (active.length === 0) return '';
+
+    // Clean up oneshot reminders after reading
+    const remaining = data.filter(r => !(r.date <= today && r.oneshot));
+    if (remaining.length !== data.length) {
+      fs.writeFileSync(REMINDERS_FILE, JSON.stringify(remaining, null, 2) + '\n');
+    }
+
+    return active.map(r => r.text).join('. ');
+  } catch {
+    return '';
+  }
+}
+
 async function getNews() {
   try {
     const out = execSync('/Users/joshua/.local/bin/youtube-news 2>/dev/null', {
@@ -238,13 +258,14 @@ async function getBriefing() {
   });
 
   // Fetch all sources in parallel
-  const [weather, calendar, reminders, news, stocks, portfolio] = await Promise.all([
+  const [weather, calendar, reminders, news, stocks, portfolio, actionItems] = await Promise.all([
     getWeather(),
     getCalendar(),
     getReminders(),
     getNews(),
     getStocks(),
-    getPortfolio()
+    getPortfolio(),
+    getActionItems()
   ]);
 
   // Format news for speech - extract just the headline titles (2 max, no numbering)
@@ -275,6 +296,9 @@ async function getBriefing() {
   }
   if (newsText) {
     briefing += `Headlines.\n${newsText}\n\n`;
+  }
+  if (actionItems) {
+    briefing += `Action items. ${actionItems}\n\n`;
   }
   briefing += `That's your briefing.`;
 

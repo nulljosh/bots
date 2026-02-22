@@ -17,7 +17,7 @@
   </defs>
 
   <!-- Title -->
-  <text x="400" y="30" class="title" text-anchor="middle">Callie - AI Daily Briefing</text>
+  <text x="400" y="30" class="title" text-anchor="middle">Fony - AI Daily Briefing</text>
   <text x="400" y="50" class="subtitle" text-anchor="middle">~30 second phone call • Weather • Calendar • Markets • News</text>
 
   <!-- Scheduler -->
