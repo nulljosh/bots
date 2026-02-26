@@ -1,7 +1,1 @@
-[
-  {
-    "text": "Kick off core LLM training. Run /train fresh in Claude Code. Causal mask bug is fixed, training should actually work now.",
-    "date": "2026-02-23",
-    "oneshot": true
-  }
-]
+[]

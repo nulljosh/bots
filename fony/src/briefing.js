@@ -12,6 +12,7 @@ const path = require('path');
 
 const FINN_INDEX = path.join(process.env.HOME, 'Documents/Code/finn/index.html');
 const REMINDERS_FILE = path.join(__dirname, '..', 'data', 'reminders.json');
+const CORE_EVAL_FILE = path.join(process.env.HOME, 'Documents/Code/core/logs/eval_results.json');
 
 function fetch(url, timeoutMs = 8000) {
   return new Promise((resolve, reject) => {
@@ -243,6 +244,35 @@ async function getNews() {
   }
 }
 
+async function getCoreReport() {
+  try {
+    if (!fs.existsSync(CORE_EVAL_FILE)) return '';
+    const evalData = JSON.parse(fs.readFileSync(CORE_EVAL_FILE, 'utf8'));
+
+    const epoch = evalData.epoch ?? 'unknown';
+    const grade = evalData.grade ?? 'unknown';
+    const overall = typeof evalData.overall_score === 'number'
+      ? Math.round(evalData.overall_score)
+      : 'unknown';
+
+    const cat = evalData.category_averages || {};
+    const math = typeof cat.math === 'number' ? Math.round(cat.math) : null;
+    const identity = typeof cat.identity === 'number' ? Math.round(cat.identity) : null;
+    const jot = typeof cat.jot === 'number' ? Math.round(cat.jot) : null;
+
+    const pieces = [`Core model update. Epoch ${epoch}. Grade ${grade}. Overall ${overall} out of 100.`];
+    const catBits = [];
+    if (math !== null) catBits.push(`math ${math}`);
+    if (identity !== null) catBits.push(`identity ${identity}`);
+    if (jot !== null) catBits.push(`jot ${jot}`);
+    if (catBits.length) pieces.push(`Category scores: ${catBits.join(', ')}.`);
+
+    return pieces.join(' ');
+  } catch {
+    return '';
+  }
+}
+
 /**
  * Build the briefing from all sources in parallel
  */
@@ -258,14 +288,15 @@ async function getBriefing() {
   });
 
   // Fetch all sources in parallel
-  const [weather, calendar, reminders, news, stocks, portfolio, actionItems] = await Promise.all([
+  const [weather, calendar, reminders, news, stocks, portfolio, actionItems, coreReport] = await Promise.all([
     getWeather(),
     getCalendar(),
     getReminders(),
     getNews(),
     getStocks(),
     getPortfolio(),
-    getActionItems()
+    getActionItems(),
+    getCoreReport()
   ]);
 
   // Format news for speech - extract just the headline titles (2 max, no numbering)
@@ -299,6 +330,9 @@ async function getBriefing() {
   }
   if (actionItems) {
     briefing += `Action items. ${actionItems}\n\n`;
+  }
+  if (coreReport) {
+    briefing += `${coreReport}\n\n`;
   }
   briefing += `That's your briefing.`;
 
