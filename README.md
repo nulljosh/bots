@@ -6,9 +6,8 @@ Monorepo for service automation bots.
 
 | Project | Description | Language |
 |---------|-------------|----------|
-| **fony** | AI phone calls via Twilio (Polly.Joanna-Neural) | Node.js |
-| **dominos** | Domino's pizza ordering skill | Node.js |
-| **starbot** | Starbucks ordering skill | Node.js |
+| **fony** | AI phone calls via Twilio | Node.js |
+| **foodie** | Master food bot — Dominos ordering, Starbucks store finder, McDonald's menu lookup | Node.js |
 
 ## License
 
