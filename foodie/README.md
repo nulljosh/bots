@@ -28,9 +28,6 @@ node -c src/chipotle.js  # Verify syntax
 /food menu chipotle
 ```
 
-## Architecture
-
-```
 ┌─────────────────────────────────────┐
 │   OpenClaw Gateway (iMessage)       │
 │   /food chipotle bowl:chicken       │
@@ -188,3 +185,21 @@ npm test
 
 **Built for:** Josh (@nulljosh) fast food automation  
 **Status:** Alpha (Chipotle API mapped, Dominos production-ready, SMS integration pending)
+
+## Architecture
+
+![foodie architecture](./foodie-arch.svg)
+
+**Flow:**
+1. Input (iMessage, SMS, Web, API) → Order Parser
+2. Parser extracts intent + items → Store Finder
+3. Store Finder locates nearest location → Order Builder
+4. Builder prices + customizes → Payment
+5. Payment processes → Output (confirmation, tracking, notification)
+
+**Integrations:**
+- **Chipotle** ✓ Real API, 7 endpoints, ETag concurrency
+- **Dominos** ✓ Production-ready, CA + US
+- **Starbucks** ⚠️ Partial (needs credentials)
+- **McDonald's** ✓ Read-only (menu/nutrition)
+
