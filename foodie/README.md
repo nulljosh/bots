@@ -76,3 +76,45 @@ const nutrition = await mcd.nutrition(bigMac[0].id);
 - Dominos: no auth needed for store/menu/tracker
 - Starbucks: ordering needs auth — get credentials from Starbucks Android app via mitmproxy
 - McDonald's: menu/nutrition only, no ordering API available
+
+## OpenClaw /food Commands
+
+```
+/food chipotle bowl:chicken guac
+  → "✓ Order placed. Pickup code: 847263. Ready in 15 min."
+
+/food chipotle burrito:carnitas rice:brown salsa:hot
+  → Burrito with carnitas, brown rice, hot salsa
+
+/food dominos pizza location:langley
+  → Order Dominos pizza to Langley location
+
+/food status 847263
+  → Check pickup order status
+
+/food menu chipotle
+  → Show Chipotle menu items
+```
+
+### How It Works
+
+1. **Command parsing** — `/food [restaurant] [order spec]`
+2. **Intent extraction** — "bowl:chicken guac" → { type: 'bowl', protein: 'chicken', hasGuac: true }
+3. **Store lookup** — Find nearest location
+4. **Order build** — Add items, pricing
+5. **Confirmation** → Place with saved payment
+6. **Pickup notification** → "Ready in 15 min. Code: 847263"
+
+### Integration with OpenClaw
+
+foodie is wired to OpenClaw command system. Add to your OpenClaw config:
+
+```yaml
+commands:
+  - name: food
+    handler: bots/foodie/src/openclaw-handler.js
+    description: Text-to-order for Chipotle, Dominos, etc.
+```
+
+Then text or message: `/food chipotle bowl:chicken`
+
