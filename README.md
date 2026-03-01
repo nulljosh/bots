@@ -1,4 +1,7 @@
-# bots
+<div align="center">
+  <img src="icon.svg" width="120" />
+  <h1>bots</h1>
+</div>
 
 Monorepo for service automation bots.
 
