@@ -39,19 +39,19 @@ function getBriefingContext() {
   try {
     const weather = execSync("curl -s 'wttr.in/Brookswood+Langley+BC?format=3'", { timeout: 5000, encoding: 'utf8' }).trim();
     lines.push(`Weather: ${weather}`);
-  } catch { lines.push('Weather: unavailable'); }
+  } catch (err) { console.warn('[Briefing] Weather fetch failed:', err.message); lines.push('Weather: unavailable'); }
 
   try {
     const cal = execSync("/opt/homebrew/bin/icalBuddy -n -nc -iep 'title,datetime' eventsToday+7 2>/dev/null", { timeout: 5000, encoding: 'utf8' }).trim();
     lines.push(`Calendar (next 7 days):\n${cal || 'Nothing scheduled'}`);
-  } catch { lines.push('Calendar: unavailable'); }
+  } catch (err) { console.warn('[Briefing] Calendar fetch failed:', err.message); lines.push('Calendar: unavailable'); }
 
   try {
     const reminders = execSync('/opt/homebrew/bin/remindctl all --plain 2>/dev/null', { timeout: 5000, encoding: 'utf8' }).trim();
     // Extract just the reminder titles (last column, tab-separated)
     const titles = reminders.split('\n').map(l => l.split('\t').pop()).filter(Boolean);
     lines.push(`Reminders: ${titles.join(', ') || 'None'}`);
-  } catch { lines.push('Reminders: unavailable'); }
+  } catch (err) { console.warn('[Briefing] Reminders fetch failed:', err.message); lines.push('Reminders: unavailable'); }
 
   return lines.join('\n');
 }
@@ -65,7 +65,8 @@ function toSafeWsUrl(publicUrl) {
     parsed.search = '';
     parsed.hash = '';
     return parsed.toString();
-  } catch {
+  } catch (err) {
+    console.warn('[URL] Failed to parse PUBLIC_URL:', err.message);
     return null;
   }
 }
@@ -134,7 +135,7 @@ wss.on('connection', (ws, req) => {
 
   ws.on('message', async (raw) => {
     let msg;
-    try { msg = JSON.parse(raw.toString()); } catch { return; }
+    try { msg = JSON.parse(raw.toString()); } catch (err) { console.warn('[WS] Failed to parse message:', err.message); return; }
 
     console.log(`[WS] Received:`, msg.type, msg.voicePrompt || '');
 
