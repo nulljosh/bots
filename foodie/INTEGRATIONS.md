@@ -86,3 +86,65 @@ For each new chain:
 5. Deploy + document
 
 Estimated time to add 2 chains: 1-2 days
+
+## Voice/SMS Integration (NEW)
+
+### Goal
+Text-to-order: Josh texts "chipotle burrito bowl" → order placed → pickup ready
+
+### Flow
+1. **SMS Trigger** (iMessage/Telegram)
+   - "chipotle burrito bowl with chicken"
+   - "taco bell: 2x crunchwrap"
+   - "pickup chipotle near langley"
+
+2. **AI Parser** (Samantha)
+   - Extract restaurant + items + quantity + mods
+   - Confirm price + ETA before placing
+
+3. **Auto-Order** (foodbot)
+   - Find nearest location
+   - Build order with cart
+   - Place with saved payment
+   - Get pickup time
+
+4. **Notification**
+   - "✓ Chipotle order placed. Ready in 15 min at Langley location. Pickup code: 8472"
+   - Real-time status updates
+
+### Implementation Priority
+1. **Chipotle API** (4-6h) — lowest friction, popular
+2. **SMS Parser** (2-3h) — item extraction, confirmation flow
+3. **Pickup Tracker** (1-2h) — polling ready status
+4. **Notification System** (1h) — callback to iMessage
+
+### Why This Works
+- Josh orders 2-3x/week (high frequency = high ROI)
+- Hands-free (text while driving/working)
+- Faster than app (no UI navigation)
+- Repeatable commands ("taco bell usual" = saved cart)
+
+### Tech Stack
+- **Parser:** Claude (extract intent, items, quantity)
+- **Ordering:** foodbot.ChipotleAPI
+- **Tracker:** foodbot polling + webhook callback
+- **Notification:** OpenClaw message tool
+
+### Estimated Effort
+- Chipotle API: 4-6h
+- SMS→Order pipeline: 3-4h
+- Parser + notifications: 2-3h
+- **Total: 9-13h (1-2 days)**
+
+### MVP (Viable in 1 day)
+1. Chipotle menu + ordering
+2. Text "order chipotle: bowl with chicken, barbacoa, guac"
+3. System confirms price, places order
+4. Pickup notification sent
+
+### Phase 2 (Week 2)
+- "chipotle usual" = saved cart recall
+- Scheduled orders ("chipotle in 2 hours")
+- Loyalty integration
+- Taco Bell + Subway
+
