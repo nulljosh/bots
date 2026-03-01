@@ -7,10 +7,19 @@
   "scripts": {
     "test": "node --test test.js"
   },
-  "keywords": ["dominos", "starbucks", "mcdonalds", "food", "pizza", "coffee", "menu"],
+  "keywords": [
+    "dominos",
+    "starbucks",
+    "mcdonalds",
+    "food",
+    "pizza",
+    "coffee",
+    "menu"
+  ],
   "author": "Joshua Trommel",
   "license": "MIT",
   "dependencies": {
+    "axios": "^1.13.6",
     "dominos": "^3.3.1"
   }
 }
