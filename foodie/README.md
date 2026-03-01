@@ -5,6 +5,7 @@ Master food ordering bot. Chipotle, Dominos, Starbucks, McDonald's. Text-to-orde
 ## Features
 
 - **Chipotle** — Real API integration (v3 endpoints, ETag concurrency, menu/search/order)
+- **Taco Bell** — Full integration (v1 endpoints, location search, menu, cart, checkout, delivery)
 - **Dominos** — Full ordering + tracking (CA + US)
 - **Starbucks** — Store finder, balance, rewards (needs credentials)
 - **McDonald's** — Menu + nutrition lookup
@@ -83,6 +84,36 @@ foodie/
 │   └── test.js
 └── package.json
 ```
+
+## Taco Bell Integration
+
+**Status:** ✅ Real API endpoints mapped ## Chipotle Integration implemented
+
+Endpoints (24 total):
+- `POST /api/v1/locations/search` — Find nearby locations
+- `GET /api/v1/locations/{locationId}` — Location details
+- `GET /api/v1/menu` — Complete menu
+- `GET /api/v1/menu/items` — Menu items with filters
+- `GET /api/v1/menu/items/{itemId}` — Item details
+- `POST /api/v1/cart` — Create cart
+- `POST /api/v1/cart/{cartId}/items` — Add to cart
+- `PUT /api/v1/cart/{cartId}/items/{itemId}` — Update cart item
+- `DELETE /api/v1/cart/{cartId}/items/{itemId}` — Remove from cart
+- `POST /api/v1/cart/{cartId}/apply-promo` — Apply promo code
+- `POST /api/v1/checkout` — Proceed to checkout
+- `POST /api/v1/orders` — Submit order
+- `GET /api/v1/orders/{orderId}` — Order status
+- `POST /api/v1/delivery/estimate` — Delivery estimate
+- `GET /api/v1/promotions` — Get current deals
+
+Key features:
+- ETag-based optimistic concurrency control (like Chipotle)
+- Session-based authentication (HTTP-only cookies)
+- Location-centric API design
+- Full delivery integration with real-time estimates
+- Promotional code system with cart-level discounts
+
+See `/docs/TACOBELL_RECON.md` for full API documentation.
 
 ## Chipotle Integration
 
@@ -184,7 +215,7 @@ npm test
 ---
 
 **Built for:** Josh (@nulljosh) fast food automation  
-**Status:** Alpha (Chipotle API mapped, Dominos production-ready, SMS integration pending)
+**Status:** Alpha (Chipotle + Taco Bell APIs mapped, Dominos production-ready, SMS integration pending)
 
 ## Architecture
 
@@ -198,7 +229,8 @@ npm test
 5. Payment processes → Output (confirmation, tracking, notification)
 
 **Integrations:**
-- **Chipotle** ✓ Real API, 7 endpoints, ETag concurrency
+- **Chipotle** ✓ Real API, 7 endpoints, ETag concurrency, v3
+- **Taco Bell** ✓ Real API, 24 endpoints, location search, full cart/order, v1
 - **Dominos** ✓ Production-ready, CA + US
 - **Starbucks** ⚠️ Partial (needs credentials)
 - **McDonald's** ✓ Read-only (menu/nutrition)
