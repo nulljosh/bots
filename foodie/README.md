@@ -1,237 +1,140 @@
-# foodie
+# Foodie — Master Food Bot
 
-Master food ordering bot. Chipotle, Dominos, Starbucks, McDonald's. Text-to-order integration.
+Food ordering automation for Dominos, Chipotle, Starbucks, McDonald's.
 
 ## Features
 
-- **Chipotle** — Real API integration (v3 endpoints, ETag concurrency, menu/search/order)
-- **Taco Bell** — Full integration (v1 endpoints, location search, menu, cart, checkout, delivery)
-- **Dominos** — Full ordering + tracking (CA + US)
-- **Starbucks** — Store finder, balance, rewards (needs credentials)
-- **McDonald's** — Menu + nutrition lookup
-- **/food commands** — OpenClaw CLI integration
-- **SMS ordering** — Text "chipotle bowl:chicken guac" → order placed, pickup ready
+### Dominos 🍕
+- **Quick ordering**: `usual` → 14" hand-tossed, pepperoni+bacon, garlic dip
+- **Custom pizzas**: `pepperoni bacon`, `veggie`, etc.
+- **Real-time tracking**: SMS notifications via `tracker.dominos.com`
+- **Store finder**: Auto-detects nearest Dominos (Langley store: 10090)
+- **Payment**: Integrated with saved Mastercard
 
-## Quick Start
+### Chipotle 🌯
+- **Bowl builder**: `bowl chicken guac` 
+- **Burrito orders**: `burrito carnitas rice:brown`
+- **Store locator**: Auto-finds nearest location
+- **SMS confirmations**: Pickup codes & ETAs
+
+### SMS Integration
+- Order parsing from natural language
+- Order confirmations with totals & ETAs
+- Real-time status tracking
+- Delivery notifications
+
+## Usage
+
+### Via OpenClaw Handler
 
 ```bash
-npm install
-node -c src/chipotle.js  # Verify syntax
+/food dominos usual                  # Josh's usual order
+/food dominos pepperoni bacon        # Custom pizza
+/food dominos 14 veggie              # Size + toppings
+/food status tracker                 # Show tracker link
+/food status 7788462726              # Track by phone
 ```
 
-## OpenClaw Commands
+### Programmatically
 
-```
-/food chipotle bowl:chicken guac
-/food chipotle burrito:carnitas rice:brown
-/food dominos pizza location:langley
-/food status 847263
-/food menu chipotle
-```
-
-┌─────────────────────────────────────┐
-│   OpenClaw Gateway (iMessage)       │
-│   /food chipotle bowl:chicken       │
-└──────────────┬──────────────────────┘
-               │
-        ┌──────▼──────────┐
-        │ Order Parser    │
-        │ (extract items) │
-        └──────┬──────────┘
-               │
-      ┌────────▼────────────────────┐
-      │  FoodOrderHandler           │
-      │  ├─ Chipotle API            │
-      │  ├─ Dominos API             │
-      │  └─ Starbucks API           │
-      └────────┬────────────────────┘
-               │
-    ┌──────────┼──────────────┐
-    │          │              │
-    ▼          ▼              ▼
-┌─────────┬──────────┬─────────────┐
-│ Search  │  Menu    │ Order Cart  │
-│ Stores  │ Lookup   │ (ETag lock) │
-└─────────┴──────────┴─────────────┘
-               │
-               ▼
-        ┌──────────────┐
-        │ Place Order  │
-        │ + Payment    │
-        └──────┬───────┘
-               │
-               ▼
-        ┌──────────────┐
-        │ iMessage     │
-        │ Pickup Code  │
-        │ + ETA        │
-        └──────────────┘
-```
-
-## File Structure
-
-```
-foodie/
-├── src/
-│   ├── chipotle.js          # Real Chipotle API (7 endpoints)
-│   ├── openclaw-handler.js  # /food command router
-│   ├── sms-handler.js       # Text-to-order orchestration
-│   └── (dominos, starbucks, mcdonalds in progress)
-├── docs/
-│   ├── RECON.md             # Chipotle API reverse-engineering report
-│   └── INTEGRATIONS.md      # Roadmap (Taco Bell, Subway, etc)
-├── tests/
-│   └── test.js
-└── package.json
-```
-
-## Taco Bell Integration
-
-**Status:** ✅ Real API endpoints mapped ## Chipotle Integration implemented
-
-Endpoints (24 total):
-- `POST /api/v1/locations/search` — Find nearby locations
-- `GET /api/v1/locations/{locationId}` — Location details
-- `GET /api/v1/menu` — Complete menu
-- `GET /api/v1/menu/items` — Menu items with filters
-- `GET /api/v1/menu/items/{itemId}` — Item details
-- `POST /api/v1/cart` — Create cart
-- `POST /api/v1/cart/{cartId}/items` — Add to cart
-- `PUT /api/v1/cart/{cartId}/items/{itemId}` — Update cart item
-- `DELETE /api/v1/cart/{cartId}/items/{itemId}` — Remove from cart
-- `POST /api/v1/cart/{cartId}/apply-promo` — Apply promo code
-- `POST /api/v1/checkout` — Proceed to checkout
-- `POST /api/v1/orders` — Submit order
-- `GET /api/v1/orders/{orderId}` — Order status
-- `POST /api/v1/delivery/estimate` — Delivery estimate
-- `GET /api/v1/promotions` — Get current deals
-
-Key features:
-- ETag-based optimistic concurrency control (like Chipotle)
-- Session-based authentication (HTTP-only cookies)
-- Location-centric API design
-- Full delivery integration with real-time estimates
-- Promotional code system with cart-level discounts
-
-See `/docs/TACOBELL_RECON.md` for full API documentation.
-
-## Chipotle Integration
-
-**Status:** ✅ Real API endpoints mapped & implemented
-
-Endpoints:
-- `GET /menuinnovation/v1/restaurants/{storeId}/onlinemenus/compressed` — Menu
-- `POST /restaurant/v3/restaurant` — Search by location
-- `GET /restaurant/v3/restaurant/{restaurantId}` — Details
-- `POST /order/v3/cart/online` — Create order
-- `GET /order/v3/cart/online/{orderId}` — Get order state
-- `PUT /order/v3/cart/online/{orderId}/delivery` — Add delivery
-- `POST /order/v3/submit/online/{orderId}` — Submit for payment
-
-Key features:
-- ETag-based optimistic concurrency control
-- No auth for menu/restaurant queries
-- JWT for authenticated orders
-- Group ordering support
-
-See `/docs/RECON.md` for full API documentation.
-
-## Dominos Integration
-
-**Status:** ✅ Full integration
-
-- Store finder by address
-- Full menu with search
-- Coupon lookup
-- Order builder + pricing
-- Order placement (payment token required)
-- Real-time tracking
-
-## Starbucks Integration
-
-**Status:** ⚠️ Partial (needs credentials)
-
-Needs `client_id`/`client_secret` from Starbucks app (intercept via mitmproxy).
-
-## McDonald's Integration
-
-**Status:** ✅ Read-only
-
-- Menu categories & items
-- Full-text search
-- Nutrition data
-- (No ordering API available)
-
-## Usage Examples
-
-### Command Line
-```bash
-/food chipotle bowl:chicken guac
-# → "✓ Order placed. Pickup code: 847263. Ready in 15 min."
-
-/food dominos pizza location:langley
-# → "Pizza order pending confirmation..."
-
-/food menu chipotle
-# → Lists available Chipotle items
-```
-
-### Programmatic
 ```javascript
-const ChipotleAPI = require('./src/chipotle');
-const api = new ChipotleAPI();
+import { DominosAPI, DominosOrderParser } from './src/dominos.js';
+import { OpenClawFoodHandler } from './src/openclaw-handler.js';
 
-// Search for restaurants
-const stores = await api.searchRestaurants(49.1, -122.3);
+// Quick order
+const handler = new OpenClawFoodHandler();
+const result = await handler.execute(['dominos', 'usual']);
+console.log(result);
 
-// Get menu
-const menu = await api.getMenu(stores[0].restaurantNumber);
-
-// Create order
-const order = await api.createOrder(stores[0].restaurantNumber);
+// Manual API
+const api = new DominosAPI();
+const parsed = DominosOrderParser.parse('pepperoni bacon');
+const order = await api.createOrder(parsed);
+const pricing = await api.priceOrder(order);
 ```
 
-## Next Steps
+## Configuration
 
-1. **Payment integration** — Stripe/Fiserv tokenization
-2. **Taco Bell** — Similar recon + integration (4-6h)
-3. **Subway** — Simpler menu structure (3-4h)
-4. **Saved carts** — "chipotle usual" → recall order
-5. **Scheduled orders** — "chipotle in 2 hours"
+### Josh's Default Order
+```javascript
+{
+  size: '14SCREEN',           // 14" hand-tossed
+  toppings: ['P', 'K'],       // Pepperoni, bacon
+  sauce: 'X',                 // Extra garlic
+  sides: [{ code: 'GARBUTTER' }], // Garlic dip
+  store: 10090,               // Langley, BC
+}
+```
+
+### Payment
+Requires card data in environment:
+- `CARD_NUMBER` — Mastercard (stored securely)
+- `CARD_EXP` — Expiration MM/YY
+- `CARD_CVV` — Security code
+- `CARD_POSTAL` — Postal code
+
+### SMS Notifications
+Register callback:
+```javascript
+const handler = new FoodOrderHandler();
+handler.onSms((type, data) => {
+  // Send SMS via Twilio, etc.
+  console.log(`[SMS] ${type}:`, data.message);
+});
+```
+
+## Files
+
+| File | Purpose |
+|------|---------|
+| `src/dominos.js` | Dominos API wrapper & order parser |
+| `src/dominos-sms.js` | SMS notifications & tracking |
+| `src/openclaw-handler.js` | `/food` command handler |
+| `src/sms-handler.js` | Multi-restaurant orchestration |
+| `src/chipotle.js` | Chipotle API integration |
+| `src/tacobell.js` | Taco Bell API (coming) |
+
+## Architecture
+
+```
+OpenClaw (/food command)
+    ↓
+openclaw-handler.js (route to restaurant)
+    ↓
+dominos.js (DominosAPI)
+    ├─ createOrder(parsed)
+    ├─ priceOrder(order)
+    └─ placeOrder(order, payment)
+    ↓
+dominos-sms.js (DominosSmsNotifier)
+    ├─ notifyOrderPlaced()
+    ├─ notifyOrderStatus()
+    └─ startTracking()
+    ↓
+SMS/iMessage
+```
+
+## Dependencies
+
+- `dominos` (v3.3.1) — Dominos API client
+- `axios` (v1.13.6) — HTTP requests
 
 ## Testing
 
 ```bash
+node test-dominos.js
 npm test
 ```
 
-## Notes
+## Next Steps
 
-- Chipotle API uses ETag headers for race condition prevention
-- All endpoints return detailed error messages for debugging
-- Rate limiting appears to be per-session (~1-2s recommended delay)
-- Payment methods handled via third-party SDKs (not direct API)
+- [ ] Payment card encryption (PCI-DSS)
+- [ ] Starbucks integration (menu + ordering)
+- [ ] McDonald's menu lookup
+- [ ] Delivery time predictions
+- [ ] Order history & saved favorites
+- [ ] Multi-location support
 
 ---
 
-**Built for:** Josh (@nulljosh) fast food automation  
-**Status:** Alpha (Chipotle + Taco Bell APIs mapped, Dominos production-ready, SMS integration pending)
-
-## Architecture
-
-![foodie architecture](./foodie-arch.svg)
-
-**Flow:**
-1. Input (iMessage, SMS, Web, API) → Order Parser
-2. Parser extracts intent + items → Store Finder
-3. Store Finder locates nearest location → Order Builder
-4. Builder prices + customizes → Payment
-5. Payment processes → Output (confirmation, tracking, notification)
-
-**Integrations:**
-- **Chipotle** ✓ Real API, 7 endpoints, ETag concurrency, v3
-- **Taco Bell** ✓ Real API, 24 endpoints, location search, full cart/order, v1
-- **Dominos** ✓ Production-ready, CA + US
-- **Starbucks** ⚠️ Partial (needs credentials)
-- **McDonald's** ✓ Read-only (menu/nutrition)
-
+Built by Joshua Trommel | MIT License

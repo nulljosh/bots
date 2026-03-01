@@ -1,16 +1,22 @@
 /**
  * openclaw-handler.js — /food command integration
  * Usage: /food chipotle bowl:chicken guac
- *        /food dominos pizza location:langley
- *        /food status 847263
+ *        /food dominos usual
+ *        /food dominos pepperoni bacon
+ *        /food status tracker
  */
 
 const { FoodOrderHandler } = require('./sms-handler');
 const { ChipotleOrderParser } = require('./chipotle');
+const { DominosAPI, DominosOrderParser } = require('./dominos');
 
 class OpenClawFoodHandler {
   constructor(options = {}) {
     this.handler = new FoodOrderHandler(options);
+    this.dominos = new DominosAPI({ 
+      region: options.region || 'ca',
+      defaultStore: options.store || 10090
+    });
   }
 
   // Parse /food command
@@ -61,19 +67,71 @@ class OpenClawFoodHandler {
   }
 
   async handleDominos(args) {
-    // /food dominos pizza location:langley
-    return {
-      status: 'not_ready',
-      message: 'Dominos integration ready in foodbot.js. Use: dominos.createOrder()',
-    };
+    // /food dominos usual
+    // /food dominos pepperoni bacon
+    try {
+      const parsed = DominosOrderParser.parse(args);
+      
+      // Create order
+      const orderResult = await this.dominos.createOrder(parsed);
+      if (!orderResult.success) {
+        return { error: orderResult.error };
+      }
+
+      const order = orderResult.order;
+
+      // Get pricing
+      const priceResult = await this.dominos.priceOrder(order);
+      if (!priceResult.success) {
+        return { error: priceResult.error };
+      }
+
+      // Build summary
+      const summary = {
+        status: 'ready_for_payment',
+        restaurant: 'Dominos',
+        store: orderResult.storeID,
+        size: parsed.size,
+        toppings: parsed.toppings.join(', '),
+        subtotal: `$${priceResult.subtotal?.toFixed(2) || '0.00'}`,
+        tax: `$${priceResult.tax?.toFixed(2) || '0.00'}`,
+        total: `$${priceResult.total?.toFixed(2) || '0.00'}`,
+        eta: `${priceResult.eta} min`,
+        message: `Order ready for payment. Total: $${priceResult.total?.toFixed(2) || '0.00'}. Confirm to proceed with Mastercard.`,
+        order: order, // For internal use
+      };
+
+      return summary;
+    } catch (err) {
+      return { error: `Dominos order failed: ${err.message}` };
+    }
   }
 
-  async handleStatus(pickupCode) {
-    // /food status 847263
-    return {
-      pickupCode,
-      message: 'Status polling not yet implemented. Check your text for ETA.',
-    };
+  async handleStatus(tracker) {
+    // /food status tracker — shows tracking URL
+    // /food status <phone> — track specific order
+    if (tracker === 'tracker' || !tracker) {
+      return {
+        service: 'Dominos Tracker',
+        url: 'https://tracker.dominos.com',
+        message: 'Track your order at tracker.dominos.com with phone 7788462726',
+      };
+    }
+    
+    try {
+      const result = await this.dominos.trackOrder(tracker);
+      if (result.success) {
+        return {
+          status: 'tracked',
+          orders: result.orders,
+          url: result.url,
+          message: `Tracking data retrieved. See ${result.url}`,
+        };
+      }
+      return { error: result.error };
+    } catch (err) {
+      return { error: `Status lookup failed: ${err.message}` };
+    }
   }
 
   async handleMenu(restaurant) {
@@ -94,8 +152,9 @@ class OpenClawFoodHandler {
       commands: [
         '/food chipotle bowl:chicken guac — Order Chipotle bowl with chicken & guac',
         '/food chipotle burrito:carnitas rice:brown — Burrito with carnitas & brown rice',
-        '/food dominos pizza location:langley — Order Dominos pizza',
-        '/food status 847263 — Check order status',
+        '/food dominos usual — Order Josh\'s usual: 14" hand-tossed, pepperoni+bacon, garlic dip',
+        '/food dominos pepperoni bacon — Custom pizza with pepperoni & bacon',
+        '/food status tracker — View Dominos tracker link',
         '/food menu chipotle — Show menu',
       ],
     };
