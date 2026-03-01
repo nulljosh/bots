@@ -104,7 +104,7 @@ console.log('\nparseFinnHtml (unit)');
   const path = require('path');
   const { parseFinnHtml } = require('../src/briefing');
 
-  // Minimal realistic finn HTML
+  // Minimal realistic opticon HTML
   const sampleHtml = `
 <h2>Portfolio</h2>
 <div class="card">
@@ -153,18 +153,18 @@ console.log('\nparseFinnHtml (unit)');
   assertEqual('empty total on missing section', emptyData.total, '');
   assertEqual('empty debt on missing section', emptyData.debt, '');
 
-  // Live read from finn if available
-  const finnPath = path.join(os.homedir(), 'Documents/Code/finn/index.html');
-  if (fs.existsSync(finnPath)) {
-    const liveData = parseFinnHtml(fs.readFileSync(finnPath, 'utf8'));
-    assert('finn live: has items', liveData.items.length > 0);
-    assert('finn live: has total', liveData.total.length > 0);
-    assert('finn live: has debt', liveData.debt.length > 0);
-    assert('finn live: Vacation found', liveData.items.some(i => i.name === 'Vacation'));
-    assert('finn live: TFSA found', liveData.items.some(i => i.name === 'TFSA'));
-    assert('finn live: Stocks found', liveData.items.some(i => i.name === 'Stocks'));
+  // Live read from opticon if available
+  const opticonPath = path.join(os.homedir(), 'Documents/Code/opticon/index.html');
+  if (fs.existsSync(opticonPath)) {
+    const liveData = parseFinnHtml(fs.readFileSync(opticonPath, 'utf8'));
+    assert('opticon live: has items', liveData.items.length > 0);
+    assert('opticon live: has total', liveData.total.length > 0);
+    assert('opticon live: has debt', liveData.debt.length > 0);
+    assert('opticon live: Vacation found', liveData.items.some(i => i.name === 'Vacation'));
+    assert('opticon live: TFSA found', liveData.items.some(i => i.name === 'TFSA'));
+    assert('opticon live: Stocks found', liveData.items.some(i => i.name === 'Stocks'));
   } else {
-    console.log('  skip: finn/index.html not found (expected in dev)');
+    console.log('  skip: opticon/index.html not found (expected in dev)');
   }
 })();
 
