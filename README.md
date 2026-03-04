@@ -5,6 +5,10 @@
 
 Monorepo for service automation bots.
 
+## Architecture
+
+![Architecture](architecture.svg)
+
 ## Subprojects
 
 | Project | Description | Language |
