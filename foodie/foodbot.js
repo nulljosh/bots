@@ -172,36 +172,115 @@ class DominosOrder {
 }
 
 class DominosAuth {
-  constructor({ email, password, clientId = 'nolo' } = {}) {
+  constructor({ email, password, clientId, clientIds, scopes } = {}) {
     this.email = email;
     this.password = password;
-    this.clientId = clientId;
+    this.clientIds = Array.from(new Set(
+      [clientId, ...(Array.isArray(clientIds) ? clientIds : []), process.env.DOMINOS_CLIENT_ID, 'nolo-ca', 'nolo'].filter(Boolean),
+    ));
+    this.scopeCandidates = Array.from(new Set(
+      (Array.isArray(scopes) && scopes.length ? scopes : ['openid profile customer', 'openid customer profile', 'customer', 'openid profile', '']).map(s => (s || '').trim()),
+    ));
     this.tokenUrl = 'https://api.dominos.ca/as/token.oauth2';
     this.accessToken = null;
     this.customerId = null;
+    this.tokenScope = [];
     this.expiresAt = 0;
+    this.lastAuthAttempt = null;
   }
 
-  async login() {
+  static decodeJwtPayload(jwt) {
+    const parts = String(jwt || '').split('.');
+    if (parts.length < 2) return {};
+    const normalized = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
+    try {
+      return JSON.parse(Buffer.from(padded, 'base64').toString('utf8'));
+    } catch {
+      return {};
+    }
+  }
+
+  async requestToken({ clientId, scope }) {
     const params = new URLSearchParams({
       grant_type: 'password',
       username: this.email,
       password: this.password,
-      client_id: this.clientId,
+      client_id: clientId,
     });
+    if (scope) params.set('scope', scope);
     const res = await fetch(this.tokenUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'DPZ-Market': 'CANADA' },
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json',
+        'DPZ-Market': 'CANADA',
+        'Origin': 'https://order.dominos.ca',
+        'Referer': 'https://order.dominos.ca/en/pages/order/',
+      },
       body: params.toString(),
     });
-    if (!res.ok) throw new Error(`Dominos auth failed: ${res.status}`);
-    const data = await res.json();
-    this.accessToken = data.access_token;
-    this.expiresAt = Date.now() + (data.expires_in - 60) * 1000;
-    // Decode CustomerID from JWT payload
-    const payload = JSON.parse(Buffer.from(data.access_token.split('.')[1], 'base64').toString());
-    this.customerId = payload.CustomerID;
-    return this;
+    let data = null;
+    try { data = await res.json(); } catch { data = null; }
+    return { ok: res.ok, status: res.status, data };
+  }
+
+  async hasCustomerAccess(token, customerId) {
+    if (!token) return false;
+    const headers = {
+      ...DOMINOS_HEADERS,
+      'Authorization': `Bearer ${token}`,
+      'DPZ-Market': 'CANADA',
+      'Origin': 'https://order.dominos.ca',
+      'Referer': 'https://order.dominos.ca/en/pages/order/',
+    };
+    const urls = ['https://api.dominos.ca/power/customer/rewards'];
+    if (customerId) urls.push(`https://api.dominos.ca/power/customer/${customerId}/profile`);
+    for (const url of urls) {
+      try {
+        const res = await fetch(url, { headers });
+        if (res.status === 200) return true;
+      } catch {
+        // Continue to next endpoint if an endpoint request fails.
+      }
+    }
+    return false;
+  }
+
+  async login() {
+    if (!this.email || !this.password) throw new Error('Dominos credentials required for login().');
+    const attempts = [];
+
+    for (const clientId of this.clientIds) {
+      for (const scope of this.scopeCandidates) {
+        const result = await this.requestToken({ clientId, scope });
+        const scopeLabel = scope || '(none)';
+        if (!result.ok || !result.data?.access_token) {
+          attempts.push(`${clientId} ${scopeLabel} => ${result.status}`);
+          continue;
+        }
+
+        const payload = DominosAuth.decodeJwtPayload(result.data.access_token);
+        const customerId = payload.CustomerID || payload.customer_id || null;
+        const tokenScopeRaw = result.data.scope;
+        const tokenScope = Array.isArray(tokenScopeRaw)
+          ? tokenScopeRaw
+          : (typeof tokenScopeRaw === 'string' ? tokenScopeRaw.split(/\s+/).filter(Boolean) : []);
+        const usable = await this.hasCustomerAccess(result.data.access_token, customerId);
+
+        attempts.push(`${clientId} ${scopeLabel} => ${result.status} scope=[${tokenScope.join(',')}] usable=${usable}`);
+        if (!usable) continue;
+
+        this.accessToken = result.data.access_token;
+        this.expiresAt = Date.now() + ((result.data.expires_in || 3600) - 60) * 1000;
+        this.customerId = customerId;
+        this.tokenScope = tokenScope;
+        this.lastAuthAttempt = { clientId, scope: scope || null, tokenScope };
+        return this;
+      }
+    }
+
+    throw new Error(`Dominos auth failed to obtain customer-scoped token. Attempts: ${attempts.join(' | ')}`);
   }
 
   async getToken() {
@@ -211,7 +290,13 @@ class DominosAuth {
 
   get headers() {
     if (!this.accessToken) throw new Error('Not authenticated. Call login() first.');
-    return { ...DOMINOS_HEADERS, 'Authorization': `Bearer ${this.accessToken}`, 'DPZ-Market': 'CANADA' };
+    return {
+      ...DOMINOS_HEADERS,
+      'Authorization': `Bearer ${this.accessToken}`,
+      'DPZ-Market': 'CANADA',
+      'Origin': 'https://order.dominos.ca',
+      'Referer': 'https://order.dominos.ca/en/pages/order/',
+    };
   }
 
   async rewards() {
@@ -223,21 +308,36 @@ class DominosAuth {
 
   async profile() {
     await this.getToken();
-    const res = await fetch('https://api.dominos.ca/power/customer/profile', { headers: this.headers });
+    const customerPath = this.customerId ? `/${this.customerId}` : '';
+    const res = await fetch(`https://api.dominos.ca/power/customer${customerPath}/profile`, { headers: this.headers });
     if (!res.ok) throw new Error(`Profile fetch failed: ${res.status}`);
+    return res.json();
+  }
+
+  async coupons() {
+    await this.getToken();
+    const res = await fetch('https://api.dominos.ca/power/customer/coupons', { headers: this.headers });
+    if (!res.ok) throw new Error(`Coupons fetch failed: ${res.status}`);
+    return res.json();
+  }
+
+  async deals() {
+    await this.getToken();
+    const res = await fetch('https://api.dominos.ca/power/customer/deals', { headers: this.headers });
+    if (!res.ok) throw new Error(`Deals fetch failed: ${res.status}`);
     return res.json();
   }
 }
 
 class DominosAPI {
-  constructor({ region = 'ca', email, password } = {}) {
+  constructor({ region = 'ca', email, password, clientId, clientIds, scopes } = {}) {
     const cfg = DOMINOS_REGIONS[region];
     if (!cfg) throw new Error(`Unknown region: ${region}`);
     this.region = region; this.config = cfg;
     this.stores = new DominosStoreFinder(cfg.order, cfg.lang);
     this.menu = new DominosMenu(cfg.order, cfg.lang);
     this.tracker = new DominosTracker(cfg.tracker);
-    this.auth = email && password ? new DominosAuth({ email, password }) : null;
+    this.auth = email && password ? new DominosAuth({ email, password, clientId, clientIds, scopes }) : null;
   }
 
   async login() {
@@ -253,6 +353,18 @@ class DominosAPI {
   }
   createItem(code, qty, options) { return new DominosItem(code, qty, options); }
   createPayment(details) { return new DominosPayment(details); }
+  async checkRewards() {
+    if (!this.auth) throw new Error('No credentials provided. Pass email+password to DominosAPI().');
+    return this.auth.rewards();
+  }
+  async getCoupons() {
+    if (!this.auth) throw new Error('No credentials provided. Pass email+password to DominosAPI().');
+    return this.auth.coupons();
+  }
+  async getDeals() {
+    if (!this.auth) throw new Error('No credentials provided. Pass email+password to DominosAPI().');
+    return this.auth.deals();
+  }
 }
 
 // ─── STARBUCKS ────────────────────────────────────────────────────────────────
