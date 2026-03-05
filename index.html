@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bots</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0c1a12;color:#e8e4da;font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;opacity:0.03;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.03'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;z-index:0}
+.container{max-width:720px;margin:0 auto;padding:3rem 1.5rem;position:relative;z-index:1}
+h1{font-family:'Fraunces',serif;font-size:clamp(2.5rem,6vw,4rem);font-weight:700;margin-bottom:0.25rem}
+.subtitle{color:#8a9e90;font-size:0.95rem;margin-bottom:3rem}
+.label{font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;color:#3d9e6a;margin-bottom:1rem;font-weight:500}
+.card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:1.5rem;margin-bottom:1rem;transition:transform 0.2s cubic-bezier(0.34,1.56,0.64,1)}
+.card:hover{transform:translateY(-2px)}
+.card h3{font-family:'Fraunces',serif;font-size:1.25rem;margin-bottom:0.5rem}
+.card p{color:#8a9e90;font-size:0.9rem;line-height:1.5}
+.tag{display:inline-block;font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.2rem 0.6rem;border-radius:100px;border:1px solid rgba(61,158,106,0.3);color:#3d9e6a;margin-right:0.5rem;margin-top:0.5rem}
+.tag.amber{border-color:rgba(212,168,67,0.3);color:#d4a843}
+.tag.muted{border-color:rgba(138,158,144,0.3);color:#8a9e90}
+.section{margin-bottom:3rem}
+.arch{margin:2rem 0;text-align:center}
+.arch img{max-width:100%;border-radius:8px;opacity:0.85}
+.footer{margin-top:4rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.06);color:#8a9e90;font-size:0.8rem}
+a{color:#3d9e6a;text-decoration:none}
+a:hover{color:#d4a843}
+.glow{position:fixed;top:-200px;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(61,158,106,0.08) 0%,transparent 70%);pointer-events:none;z-index:0}
+code{background:rgba(255,255,255,0.06);padding:0.15rem 0.4rem;border-radius:4px;font-size:0.85rem}
+.flow{margin:1rem 0;padding-left:1rem;border-left:2px solid rgba(61,158,106,0.3)}
+.flow .step{position:relative;padding:0.4rem 0 0.4rem 1rem;color:#8a9e90;font-size:0.85rem}
+.flow .step::before{content:'';position:absolute;left:-1.35rem;top:50%;transform:translateY(-50%);width:8px;height:8px;border-radius:50%;background:#3d9e6a;border:2px solid #0c1a12}
+</style>
+</head>
+<body>
+<div class="glow"></div>
+<div class="container">
+<h1>bots</h1>
+<p class="subtitle">Service automation monorepo. AI phone calls and headless food ordering.</p>
+
+<div class="section">
+<p class="label">Projects</p>
+
+<div class="card">
+<h3>fony</h3>
+<p>AI-powered phone calls via Twilio. Automated voice interactions with configurable agents and real-time transcription.</p>
+<span class="tag">twilio</span>
+<span class="tag">express</span>
+<span class="tag">node.js</span>
+</div>
+
+<div class="card">
+<h3>foodie</h3>
+<p>Unified food API. Headless ordering, menu search, store lookup, and order tracking across multiple restaurant chains.</p>
+<span class="tag">dominos</span>
+<span class="tag amber">starbucks</span>
+<span class="tag muted">mcdonalds</span>
+</div>
+</div>
+
+<div class="section">
+<p class="label">Foodie APIs</p>
+
+<div class="card">
+<h3>DominosAPI</h3>
+<p>Full ordering pipeline for Canada and US. Store finder, menu search, order builder, pricing, validation, payment, placement, and live tracking. OAuth support for rewards and profile.</p>
+<div class="flow">
+<div class="step">Find store by address</div>
+<div class="step">Build order (items, toppings, coupons)</div>
+<div class="step">Price and validate</div>
+<div class="step">Set payment and place</div>
+<div class="step">Track by phone or order ID</div>
+</div>
+</div>
+
+<div class="card">
+<h3>StarbucksAPI</h3>
+<p>Store finder works via public BFF endpoint. Full ordering (menu, cart, pricing, placement) requires client_id/secret intercepted from the Android app via mitmproxy.</p>
+<span class="tag amber">partial</span>
+</div>
+
+<div class="card">
+<h3>McDonaldsAPI</h3>
+<p>Menu lookup and nutrition data for Canadian market. Uses unofficial JSON endpoints. No ordering API available.</p>
+<span class="tag muted">read-only</span>
+</div>
+</div>
+
+<div class="section">
+<p class="label">Architecture</p>
+<div class="arch">
+<img src="architecture.svg" alt="Architecture diagram">
+</div>
+</div>
+
+<div class="section">
+<p class="label">Structure</p>
+<div class="card">
+<pre style="color:#8a9e90;font-size:0.8rem;line-height:1.6">bots/
+  fony/           Twilio voice agent
+    index.js      Express server + call handler
+    src/          Voice scripts, TTS config
+    tests/        Integration tests
+  foodie/         Food ordering API
+    foodbot.js    All three APIs in one module
+    src/          Handlers, parsers, notifiers
+    docs/         Integration docs</pre>
+</div>
+</div>
+
+<div class="footer">
+<p>MIT 2026, Joshua Trommel</p>
+</div>
+</div>
+</body>
+</html>
