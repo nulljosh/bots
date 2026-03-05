@@ -65,5 +65,5 @@
   <!-- Phone -->
   <rect x="550" y="60" width="120" height="70" rx="8" class="box"/>
   <text x="610" y="90" class="label">Phone</text>
-  <text x="610" y="106" class="sub">+17788462726</text>
+  <text x="610" y="106" class="sub">USER_PHONE</text>
 </svg>

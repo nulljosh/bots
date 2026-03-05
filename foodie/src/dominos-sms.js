@@ -8,7 +8,7 @@ const { DominosAPI } = require('./dominos');
 class DominosSmsNotifier {
   constructor(options = {}) {
     this.dominos = new DominosAPI(options);
-    this.phone = options.phone || '7788462726';
+    this.phone = options.phone || process.env.USER_PHONE;
     this.callbacks = [];
     this.polling = false;
   }

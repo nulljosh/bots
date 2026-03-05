@@ -25,7 +25,7 @@ function getConfig() {
       authToken: process.env.TWILIO_AUTH_TOKEN,
       phoneNumber: process.env.TWILIO_PHONE_NUMBER
     },
-    yourPhone: process.env.YOUR_PHONE || '+17788462726',
+    yourPhone: process.env.YOUR_PHONE,
     schedule: {
       hour: parseInt(process.env.CALL_HOUR || '8', 10),
       minute: parseInt(process.env.CALL_MINUTE || '0', 10)

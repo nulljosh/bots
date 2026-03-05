@@ -27,7 +27,7 @@ async function main() {
   // Test 3: Track order
   console.log('Test 3: Tracking');
   const api = new DominosAPI();
-  console.log('Track URL: https://tracker.dominos.com?phone=7788462726');
+  console.log(`Track URL: https://tracker.dominos.com?phone=${process.env.USER_PHONE || ''}`);
   console.log('✓ Tracking ready\n');
 
   console.log('=== All tests passed ===');

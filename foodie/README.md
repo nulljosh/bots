@@ -32,7 +32,7 @@ Food ordering automation for Dominos, Chipotle, Starbucks, McDonald's.
 /food dominos pepperoni bacon        # Custom pizza
 /food dominos 14 veggie              # Size + toppings
 /food status tracker                 # Show tracker link
-/food status 7788462726              # Track by phone
+/food status <phone>                  # Track by phone
 ```
 
 ### Programmatically
@@ -137,4 +137,4 @@ npm test
 
 ---
 
-Built by Joshua Trommel | MIT License
+MIT License

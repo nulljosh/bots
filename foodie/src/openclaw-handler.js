@@ -15,7 +15,7 @@ class OpenClawFoodHandler {
     this.handler = new FoodOrderHandler(options);
     this.dominos = new DominosAPI({ 
       region: options.region || 'ca',
-      defaultStore: options.store || 10090
+      defaultStore: options.store || parseInt(process.env.DOMINOS_STORE || '0')
     });
   }
 
@@ -114,7 +114,7 @@ class OpenClawFoodHandler {
       return {
         service: 'Dominos Tracker',
         url: 'https://tracker.dominos.com',
-        message: 'Track your order at tracker.dominos.com with phone 7788462726',
+        message: `Track your order at tracker.dominos.com with phone ${process.env.USER_PHONE || ''}`,
       };
     }
     

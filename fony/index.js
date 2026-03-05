@@ -20,7 +20,8 @@ const command = process.argv[2] || 'call';
 function notifyFailure(err) {
   const msg = `Fony failed to call: ${err.message}`;
   try {
-    execSync(`/opt/homebrew/bin/imsg send --to +17788462726 --text ${JSON.stringify(msg)}`, { timeout: 10000 });
+    const config = getConfig();
+    execSync(`/opt/homebrew/bin/imsg send --to ${config.yourPhone} --text ${JSON.stringify(msg)}`, { timeout: 10000 });
   } catch (imsgErr) {
     console.error('iMessage notification also failed:', imsgErr.message);
   }

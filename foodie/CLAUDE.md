@@ -9,13 +9,9 @@ Three classes, one file:
 - `StarbucksAPI` — needs client_id/secret from mitmproxy intercept of Starbucks Android app
 - `McDonaldsAPI` — menu lookup only (CA), no auth, no ordering
 
-## Josh's Dominos Config
-- Store: 10090 (4061 200 St, Langley)
-- Address: 20690 40 Ave, Langley, BC V3A2X7
+## Dominos Config
+- Store, address, phone, payment: loaded from .env (see .env.example)
 - Usual: 14SCREEN + P (pepperoni) + K (bacon) + X (sauce) + C (cheese), GARBUTTER (garlic dip)
-- Phone: 7788462726
-- Payment: see ~/.openclaw/.secure/payment.env (Mastercard ending 0255)
-- Customer: Joshua Trommel, jatrommel@gmail.com
 
 ## Ordering Flow (Dominos)
 1. `api.stores.find(address)` → get StoreID

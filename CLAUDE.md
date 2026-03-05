@@ -11,8 +11,8 @@ Unified food API. Three classes in one file (foodie/foodbot.js):
 - `StarbucksAPI` -- store finder works; ordering needs mitmproxy credential intercept
 - `McDonaldsAPI` -- menu/nutrition lookup (CA only), no ordering
 
-Josh's usual Dominos order: Large hand tossed (14SCREEN), pepperoni (P) + bacon (K), garlic dip (GARBUTTER).
-Store: 10090 (4061 200 St, Langley). Payment: ~/.openclaw/.secure/payment.env.
+Default Dominos order: Large hand tossed (14SCREEN), pepperoni (P) + bacon (K), garlic dip (GARBUTTER).
+Store, address, payment: loaded from .env (see foodie/.env.example).
 OpenClaw CLI wrapper: ~/.openclaw/workspace/skills/dominos/scripts/order.js
 
 ## Structure

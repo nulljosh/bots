@@ -31,4 +31,4 @@ Monorepo for service automation bots.
 
 ## License
 
-MIT 2026, Joshua Trommel
+MIT 2026

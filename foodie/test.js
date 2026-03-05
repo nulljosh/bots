@@ -11,7 +11,7 @@ describe('Dominos', () => {
   const api = new DominosAPI({ region: 'ca' });
 
   it('finds stores near Langley', async () => {
-    const stores = await api.stores.find('20690 40 Ave, Langley, BC');
+    const stores = await api.stores.find(process.env.USER_STREET + ', ' + process.env.USER_CITY + ', ' + process.env.USER_REGION);
     assert.ok(stores.length > 0, 'Expected at least one store');
     console.log('Nearest store:', stores[0].StoreID, stores[0].AddressDescription);
   });
@@ -24,7 +24,7 @@ describe('Dominos', () => {
   });
 
   it('tracks by phone', async () => {
-    const result = await api.tracker.byPhone('7788462726');
+    const result = await api.tracker.byPhone(process.env.USER_PHONE);
     assert.ok(result.OrderStatuses !== undefined);
     console.log('Tracker result:', result);
   });

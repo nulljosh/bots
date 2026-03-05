@@ -12,10 +12,10 @@ class FoodOrderHandler {
   constructor(options = {}) {
     this.chipotle = new ChipotleAPI({ region: 'ca' });
     this.dominos = new DominosAPI({ region: 'ca' });
-    this.smsNotifier = new DominosSmsNotifier({ phone: options.phone || '7788462726' });
+    this.smsNotifier = new DominosSmsNotifier({ phone: options.phone || process.env.USER_PHONE });
     this.defaultStore = options.defaultStore || 'langley';
     this.paymentToken = options.paymentToken; // saved card
-    this.phone = options.phone || '7788462726';
+    this.phone = options.phone || process.env.USER_PHONE;
     this.callbacks = [];
   }
 
@@ -35,7 +35,7 @@ class FoodOrderHandler {
       console.log('[Order] Parsed Chipotle:', parsed);
 
       // Find nearest store
-      const stores = await this.chipotle.findStores('Langley, BC');
+      const stores = await this.chipotle.findStores(process.env.USER_CITY || 'unknown');
       if (stores.length === 0) throw new Error('No Chipotle stores found');
       const store = stores[0];
 
@@ -111,7 +111,7 @@ class FoodOrderHandler {
         cardNumber: process.env.CARD_NUMBER || '',
         expiration: process.env.CARD_EXP || '',
         cvv: process.env.CARD_CVV || '',
-        postalCode: 'V3A9X2',
+        postalCode: process.env.CARD_POSTAL || '',
       };
 
       const placeResult = await this.dominos.placeOrder(order, paymentData);

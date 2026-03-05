@@ -22,7 +22,7 @@ class DominosOrderParser {
         toppings: ['P', 'K'], // Pepperoni, bacon (K)
         sauce: 'X', // Garlic (X = extra sauce variant)
         sides: [{ code: 'GARBUTTER', qty: 1 }], // Garlic dip
-        store: 10090,
+        store: parseInt(process.env.DOMINOS_STORE || '0'),
       };
     }
 
@@ -30,7 +30,7 @@ class DominosOrderParser {
     const toppings = [];
     const sides = [];
     let size = '14SCREEN';
-    let store = 10090;
+    let store = parseInt(process.env.DOMINOS_STORE || '0');
 
     // Extract size if specified
     if (text.includes('14')) size = '14SCREEN';
@@ -66,8 +66,8 @@ class DominosOrderParser {
     }
 
     // Extract store location
-    if (text.includes('langley')) store = 10090;
-    if (text.includes('vancouver')) store = 10090; // Default for now
+    if (text.includes('langley')) store = parseInt(process.env.DOMINOS_STORE || '0');
+    if (text.includes('vancouver')) store = parseInt(process.env.DOMINOS_STORE || '0');
     if (text.includes('delivery')) { /* marker, no action needed */ }
 
     return {
@@ -84,17 +84,17 @@ class DominosOrderParser {
 class DominosAPI {
   constructor(options = {}) {
     this.region = options.region || 'ca';
-    this.defaultStore = options.defaultStore || 10090; // Langley
+    this.defaultStore = options.defaultStore || parseInt(process.env.DOMINOS_STORE || '0');
     this.customer = options.customer || {
-      firstName: 'Joshua',
-      lastName: 'Trommel',
-      phone: '7788462726',
-      email: 'jatrommel@gmail.com',
+      firstName: process.env.USER_FIRST_NAME || '',
+      lastName: process.env.USER_LAST_NAME || '',
+      phone: process.env.USER_PHONE || '',
+      email: process.env.USER_EMAIL || '',
       address: {
-        street: '20690 40 Ave',
-        city: 'Langley',
-        region: 'BC',
-        postalCode: 'V3A 9X2'
+        street: process.env.USER_STREET || '',
+        city: process.env.USER_CITY || '',
+        region: process.env.USER_REGION || '',
+        postalCode: process.env.USER_POSTAL || ''
       }
     };
     this.dominos = new Dominos.Dominos(this.customer);
@@ -222,7 +222,7 @@ class DominosAPI {
         orderId: result?.OrderID || result?.orderId || 'unknown',
         storeID: result?.StoreID || order.storeID,
         status: 'placed',
-        message: `Order placed! Track via tracker.dominos.com with phone 7788462726`,
+        message: `Order placed! Track via tracker.dominos.com with phone ${this.customer.phone}`,
       };
     } catch (err) {
       console.error('[Dominos] Order placement error:', err.message);

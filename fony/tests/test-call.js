@@ -22,7 +22,7 @@ const { accountSid, authToken, phoneNumber } = config.twilio;
 const client = twilio(accountSid, authToken);
 
 // Your phone number (where to call)
-const YOUR_PHONE = '+17788462726';
+const YOUR_PHONE = process.env.YOUR_PHONE;
 
 console.log('📞 Making test call...');
 console.log(`From: ${phoneNumber}`);
