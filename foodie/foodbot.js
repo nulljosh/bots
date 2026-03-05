@@ -168,16 +168,86 @@ class DominosOrder {
   }
 }
 
+class DominosAuth {
+  constructor({ email, password, clientId = 'nolo' } = {}) {
+    this.email = email;
+    this.password = password;
+    this.clientId = clientId;
+    this.tokenUrl = 'https://api.dominos.ca/as/token.oauth2';
+    this.accessToken = null;
+    this.customerId = null;
+    this.expiresAt = 0;
+  }
+
+  async login() {
+    const params = new URLSearchParams({
+      grant_type: 'password',
+      username: this.email,
+      password: this.password,
+      client_id: this.clientId,
+    });
+    const res = await fetch(this.tokenUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'DPZ-Market': 'CANADA' },
+      body: params.toString(),
+    });
+    if (!res.ok) throw new Error(`Dominos auth failed: ${res.status}`);
+    const data = await res.json();
+    this.accessToken = data.access_token;
+    this.expiresAt = Date.now() + (data.expires_in - 60) * 1000;
+    // Decode CustomerID from JWT payload
+    const payload = JSON.parse(Buffer.from(data.access_token.split('.')[1], 'base64').toString());
+    this.customerId = payload.CustomerID;
+    return this;
+  }
+
+  async getToken() {
+    if (!this.accessToken || Date.now() >= this.expiresAt) await this.login();
+    return this.accessToken;
+  }
+
+  get headers() {
+    if (!this.accessToken) throw new Error('Not authenticated. Call login() first.');
+    return { ...DOMINOS_HEADERS, 'Authorization': `Bearer ${this.accessToken}`, 'DPZ-Market': 'CANADA' };
+  }
+
+  async rewards() {
+    await this.getToken();
+    const res = await fetch('https://api.dominos.ca/power/customer/rewards', { headers: this.headers });
+    if (!res.ok) throw new Error(`Rewards fetch failed: ${res.status}`);
+    return res.json();
+  }
+
+  async profile() {
+    await this.getToken();
+    const res = await fetch('https://api.dominos.ca/power/customer/profile', { headers: this.headers });
+    if (!res.ok) throw new Error(`Profile fetch failed: ${res.status}`);
+    return res.json();
+  }
+}
+
 class DominosAPI {
-  constructor({ region = 'ca' } = {}) {
+  constructor({ region = 'ca', email, password } = {}) {
     const cfg = DOMINOS_REGIONS[region];
     if (!cfg) throw new Error(`Unknown region: ${region}`);
     this.region = region; this.config = cfg;
     this.stores = new DominosStoreFinder(cfg.order, cfg.lang);
     this.menu = new DominosMenu(cfg.order, cfg.lang);
     this.tracker = new DominosTracker(cfg.tracker);
+    this.auth = email && password ? new DominosAuth({ email, password }) : null;
   }
-  createOrder() { return new DominosOrder(this.config.order, this.region); }
+
+  async login() {
+    if (!this.auth) throw new Error('No credentials provided. Pass email+password to DominosAPI().');
+    await this.auth.login();
+    return this;
+  }
+
+  createOrder() {
+    const order = new DominosOrder(this.config.order, this.region);
+    if (this.auth?.customerId) order.data.CustomerID = this.auth.customerId;
+    return order;
+  }
   createItem(code, qty, options) { return new DominosItem(code, qty, options); }
   createPayment(details) { return new DominosPayment(details); }
 }
@@ -359,7 +429,7 @@ class McDonaldsAPI {
 
 export {
   // Dominos
-  DominosAPI, DominosStoreFinder, DominosMenu, DominosTracker,
+  DominosAuth, DominosAPI, DominosStoreFinder, DominosMenu, DominosTracker,
   DominosOrder, DominosItem, DominosPayment, detectCardType,
   // Starbucks
   StarbucksAPI,
