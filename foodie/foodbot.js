@@ -37,7 +37,10 @@ function detectCardType(number) {
 }
 
 async function dominosRequest(url, options = {}) {
-  const res = await fetch(url, { headers: DOMINOS_HEADERS, ...options });
+  const extraHeaders = options.headers || {};
+  const merged = { ...DOMINOS_HEADERS, ...extraHeaders };
+  const { headers: _, ...rest } = options;
+  const res = await fetch(url, { headers: merged, ...rest });
   if (!res.ok) throw new Error(`Dominos API ${res.status}: ${res.statusText} — ${url}`);
   return res.json();
 }
@@ -157,14 +160,14 @@ class DominosOrder {
   orderInFuture(date) { if (date < Date.now()) throw new Error('Date must be future'); this.data.FutureOrderTime = date.toISOString().replace('T', ' ').replace('.000Z', ''); return this; }
   orderNow() { delete this.data.FutureOrderTime; return this; }
 
-  async validate() { const res = await dominosRequest(`${this.baseUrl}/power/validate-order`, { method: 'POST', body: JSON.stringify({ Order: this.data }) }); return { valid: res.Status !== -1, ...res }; }
-  async price() { const res = await dominosRequest(`${this.baseUrl}/power/price-order`, { method: 'POST', body: JSON.stringify({ Order: this.data }) }); if (res.Status === -1) throw new Error('Pricing failed: ' + JSON.stringify(res.StatusItems)); return res; }
+  async validate() { const res = await dominosRequest(`${this.baseUrl}/power/validate-order`, { method: 'POST', headers: { 'DPZ-Market': 'CANADA' }, body: JSON.stringify({ Order: { ...this.data, Market: 'CANADA' } }) }); return { valid: res.Status !== -1, ...res }; }
+  async price() { const res = await dominosRequest(`${this.baseUrl}/power/price-order`, { method: 'POST', headers: { 'DPZ-Market': 'CANADA' }, body: JSON.stringify({ Order: { ...this.data, Market: 'CANADA' } }) }); if (res.Status === -1) throw new Error('Pricing failed: ' + JSON.stringify(res.StatusItems)); return res; }
   async place() {
     if (!this.data.StoreID) throw new Error('Store ID required');
     if (!this.data.Products.length) throw new Error('No items in order');
     if (!this.data.Payments.length) throw new Error('Payment required');
     if (!this.data.Address.Region) throw new Error('Address region required');
-    return dominosRequest(`${this.baseUrl}/power/place-order`, { method: 'POST', body: JSON.stringify({ Order: this.data }) });
+    return dominosRequest(`${this.baseUrl}/power/place-order`, { method: 'POST', headers: { 'DPZ-Market': 'CANADA' }, body: JSON.stringify({ Order: { ...this.data, Market: 'CANADA' } }) });
   }
 }
 
