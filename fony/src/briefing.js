@@ -44,14 +44,17 @@ async function getWeather() {
     // Open-Meteo - free, no API key, reliable
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&temperature_unit=celsius&timezone=auto&forecast_days=1`;
     
-    // Retry logic: try twice with longer timeout
+    // Retry logic: try 3 times with delay (launchd TLS can fail on wake)
     let data;
-    try {
-      data = JSON.parse(await fetch(url, 10000));
-    } catch (firstErr) {
-      console.error('Weather fetch failed (attempt 1):', firstErr.message);
-      // Retry once
-      data = JSON.parse(await fetch(url, 10000));
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        data = JSON.parse(await fetch(url, 10000));
+        break;
+      } catch (err) {
+        console.error(`Weather fetch failed (attempt ${attempt}):`, err.message);
+        if (attempt === 3) throw err;
+        await new Promise(r => setTimeout(r, 3000));
+      }
     }
 
     const temp = Math.round(data.current.temperature_2m);
