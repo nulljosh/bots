@@ -23,6 +23,9 @@ Monorepo for service automation bots.
 - [x] OpenClaw CLI integration (order.js)
 - [x] Starbucks store finder (public BFF endpoint)
 - [x] McDonald's menu + nutrition lookup
+- [x] Chipotle ordering (restaurant search, menu, ordering, pickup times)
+- [x] Taco Bell ordering (location search, menu, cart, delivery estimates)
+- [x] Pizza Hut ordering (store finder, menu, cart, session-based auth)
 - [ ] Starbucks ordering (needs mitmproxy credential intercept)
 - [x] Loyalty points + coupons tracking
 - [x] Store deals from menu endpoint
