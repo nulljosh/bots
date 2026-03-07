@@ -1,0 +1,17 @@
+{
+  "inventory": [
+    {
+      "strain": "Blue Dream",
+      "quantity": 3.5,
+      "dateAdded": "2026-03-07T20:31:02.944Z"
+    }
+  ],
+  "history": [
+    {
+      "action": "add",
+      "strain": "Blue Dream",
+      "quantity": 3.5,
+      "timestamp": "2026-03-07T20:31:02.946Z"
+    }
+  ]
+}
