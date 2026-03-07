@@ -2,7 +2,7 @@
 
 # Fony
 
-![version](https://img.shields.io/badge/version-v0.6.0-blue)
+![version](https://img.shields.io/badge/version-v0.7.0-blue)
 
 AI-powered daily briefing phone calls. Calls you every morning with weather, calendar, stocks, and news.
 
@@ -55,7 +55,7 @@ node index.js test
 
 - **Voice:** Twilio (outbound calls) + Amazon Polly Neural (Joanna-Neural TTS)
 - **LLM:** Claude (claude-sonnet-4-6) → Ollama (qwen2.5:3b) fallback
-- **Data:** Open-Meteo (weather), icalBuddy (calendar), Yahoo Finance (stocks), Google News RSS
+- **Data:** Open-Meteo (weather), icalBuddy (calendar), Yahoo Finance (stocks), Google News RSS, Arthur training status
 - **Runtime:** Node.js
 
 ## Project Structure
@@ -175,21 +175,26 @@ PUBLIC_URL=https://...    # ngrok URL
 ## What You Get
 
 **~30 second morning briefing with:**
-- 🌤️ Weather (location, temp, conditions, precipitation)
-- 📅 Calendar (next 3 events, deduplicated)
-- 📈 Markets (S&P 500 live % change)
-- 📰 News (2 top headlines)
-- ⏭️ Skips empty sections (reminders, etc.)
+- Weather (location, temp, conditions, precipitation)
+- Calendar (next 3 events, deduplicated)
+- Markets (S&P 500 live % change)
+- News (2 top headlines)
+- Arthur training status (epoch, step, loss, duration)
+- Skips empty sections (reminders, etc.)
 
-## Recent Updates (v0.6.0)
+## Recent Updates (v0.7.0)
 
+- Added Arthur training status to morning briefing (epoch, step, loss, duration)
+- Fixed duplicate YOUR_PHONE in .env (wrong number was overriding correct one)
+
+### v0.6.0
 - Swapped Groq for Claude (`claude-sonnet-4-6`) as primary LLM
 - Added Ollama (`qwen2.5:3b`) as automatic fallback if Claude is unavailable
 - `OLLAMA_MODEL` env var to override fallback model
 
 ## Status
 
-**Current:** v0.6.0 - Claude primary + Ollama fallback
+**Current:** v0.7.0 - Arthur training integration
 **Blocked:** Interactive mode needs `PUBLIC_URL` (Cloudflare Tunnel)
 **Started:** 2026-02-09
 

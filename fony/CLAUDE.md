@@ -4,7 +4,7 @@
 Production-ready Twilio/Polly system that calls you every morning at 9 AM with a 30-second briefing covering weather, calendar, markets, and news.
 
 ## Status
-- v0.6.0 - Claude primary + Ollama fallback for interactive mode
+- v0.7.0 - Arthur training status in briefing, phone number fix
 - Started: 2026-02-09
 - Live: Daily calls working
 
@@ -12,7 +12,7 @@ Production-ready Twilio/Polly system that calls you every morning at 9 AM with a
 - Voice: Twilio outbound calls + TwiML
 - TTS: Amazon Polly Neural (Joanna-Neural)
 - LLM: Claude (claude-sonnet-4-6) → Ollama (qwen2.5:3b) fallback
-- Data: Open-Meteo, icalBuddy, Yahoo Finance, Google News RSS
+- Data: Open-Meteo, icalBuddy, Yahoo Finance, Google News RSS, Arthur daemon_state.json
 - Runtime: Node.js
 - GitHub Pages: https://nulljosh.github.io/fony
 
