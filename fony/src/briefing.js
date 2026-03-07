@@ -12,7 +12,7 @@ const path = require('path');
 
 const FINN_INDEX = path.join(process.env.HOME, 'Documents/Code/finn/index.html');
 const REMINDERS_FILE = path.join(__dirname, '..', 'data', 'reminders.json');
-const CORE_EVAL_FILE = path.join(process.env.HOME, 'Documents/Code/core/logs/eval_results.json');
+const ARTHUR_ROOT = path.join(process.env.HOME, 'Documents/Code/arthur');
 
 function fetch(url, timeoutMs = 8000) {
   return new Promise((resolve, reject) => {
@@ -244,30 +244,45 @@ async function getNews() {
   }
 }
 
-async function getCoreReport() {
+async function getArthurStatus() {
   try {
-    if (!fs.existsSync(CORE_EVAL_FILE)) return '';
-    const evalData = JSON.parse(fs.readFileSync(CORE_EVAL_FILE, 'utf8'));
+    const stateFile = path.join(ARTHUR_ROOT, 'daemon_state.json');
+    if (!fs.existsSync(stateFile)) return '';
+    const state = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
 
-    const epoch = evalData.epoch ?? 'unknown';
-    const grade = evalData.grade ?? 'unknown';
-    const overall = typeof evalData.overall_score === 'number'
-      ? Math.round(evalData.overall_score)
-      : 'unknown';
+    const epoch = state.epoch ?? 1;
+    const total = state.total ?? 3;
+    const size = state.size ?? '65M';
 
-    const cat = evalData.category_averages || {};
-    const math = typeof cat.math === 'number' ? Math.round(cat.math) : null;
-    const identity = typeof cat.identity === 'number' ? Math.round(cat.identity) : null;
-    const jot = typeof cat.jot === 'number' ? Math.round(cat.jot) : null;
+    // Parse last lines of training log for current step and loss
+    let step = 'unknown';
+    let loss = 'unknown';
+    const logFile = path.join(ARTHUR_ROOT, 'logs', 'training.log');
+    if (fs.existsSync(logFile)) {
+      const lines = fs.readFileSync(logFile, 'utf8').trim().split('\n');
+      for (let i = lines.length - 1; i >= 0; i--) {
+        const m = lines[i].match(/^\s*(\d+)\s+([\d.]+)\s+/);
+        if (m) {
+          step = m[1];
+          loss = parseFloat(m[2]).toFixed(1);
+          break;
+        }
+      }
+    }
 
-    const pieces = [`Core model update. Epoch ${epoch}. Grade ${grade}. Overall ${overall} out of 100.`];
-    const catBits = [];
-    if (math !== null) catBits.push(`math ${math}`);
-    if (identity !== null) catBits.push(`identity ${identity}`);
-    if (jot !== null) catBits.push(`jot ${jot}`);
-    if (catBits.length) pieces.push(`Category scores: ${catBits.join(', ')}.`);
+    // Compute training duration
+    let duration = '';
+    if (state.training_started) {
+      const elapsed = Date.now() - new Date(state.training_started).getTime();
+      const hours = Math.floor(elapsed / 3600000);
+      const mins = Math.floor((elapsed % 3600000) / 60000);
+      if (hours > 0) duration = `Training for ${hours} hour${hours !== 1 ? 's' : ''}`;
+      else duration = `Training for ${mins} minute${mins !== 1 ? 's' : ''}`;
+    }
 
-    return pieces.join(' ');
+    let text = `Arthur update. ${size} model, epoch ${epoch} of ${total}. Step ${step}, loss ${loss}.`;
+    if (duration) text += ` ${duration}.`;
+    return text;
   } catch {
     return '';
   }
@@ -288,7 +303,7 @@ async function getBriefing() {
   });
 
   // Fetch all sources in parallel
-  const [weather, calendar, reminders, news, stocks, portfolio, actionItems, coreReport] = await Promise.all([
+  const [weather, calendar, reminders, news, stocks, portfolio, actionItems, arthurStatus] = await Promise.all([
     getWeather(),
     getCalendar(),
     getReminders(),
@@ -296,7 +311,7 @@ async function getBriefing() {
     getStocks(),
     getPortfolio(),
     getActionItems(),
-    getCoreReport()
+    getArthurStatus()
   ]);
 
   // Format news for speech - extract just the headline titles (2 max, no numbering)
@@ -331,8 +346,8 @@ async function getBriefing() {
   if (actionItems) {
     briefing += `Action items. ${actionItems}\n\n`;
   }
-  if (coreReport) {
-    briefing += `${coreReport}\n\n`;
+  if (arthurStatus) {
+    briefing += `${arthurStatus}\n\n`;
   }
   briefing += `That's your briefing.`;
 
