@@ -5,7 +5,7 @@ Merged from `dominos/` and `starbot/`. Single module: `foodbot.js`.
 ## Architecture
 
 Three classes, one file:
-- `DominosAPI` — full ordering pipeline (CA + US), no auth needed
+- `DominosAPI` — full ordering pipeline (CA + US), OAuth for rewards/profile
 - `StarbucksAPI` — needs client_id/secret from mitmproxy intercept of Starbucks Android app
 - `McDonaldsAPI` — menu lookup only (CA), no auth, no ordering
 
@@ -36,6 +36,15 @@ Three classes, one file:
 - [ ] Enable auto-reload in Starbucks app (manual, no code needed)
 - [ ] Update Opticon financeData.js balance from scrape result
 - [ ] (stretch) Extract fresh client_id/secret from APK via apktool if ordering is needed
+
+## OpenClaw Skill
+CLI wrapper: `~/.openclaw/workspace/skills/dominos/scripts/order.js`
+Config: `~/.openclaw/workspace/skills/dominos/config.json`
+
+Commands: usual, place, menu, track, stores, loyalty, coupons, store-deals, profile
+
+Delivery: "Leave at the door. Do not knock.", tip $0, CustomerID from OAuth.
+Store coupons via menu endpoint (the /customer/coupons and /customer/deals endpoints 403 on CA).
 
 ## Testing
 Run sparingly — hits live APIs. Don't spam order.price() or place() in testing.

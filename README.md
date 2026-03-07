@@ -24,7 +24,9 @@ Monorepo for service automation bots.
 - [x] Starbucks store finder (public BFF endpoint)
 - [x] McDonald's menu + nutrition lookup
 - [ ] Starbucks ordering (needs mitmproxy credential intercept)
-- [ ] Loyalty points tracking (auto-check on order placement)
+- [x] Loyalty points + coupons tracking
+- [x] Store deals from menu endpoint
+- [x] Delivery instructions + tip config
 - [ ] Notifications when rewards available
 - [ ] Scheduled/recurring orders
 - [ ] Order history and favorites

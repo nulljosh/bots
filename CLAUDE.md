@@ -14,6 +14,13 @@ Unified food API. Three classes in one file (foodie/foodbot.js):
 Default Dominos order: Large hand tossed (14SCREEN), pepperoni (P) + bacon (K), garlic dip (GARBUTTER).
 Store, address, payment: loaded from .env (see foodie/.env.example).
 OpenClaw CLI wrapper: ~/.openclaw/workspace/skills/dominos/scripts/order.js
+Commands: usual, place, menu, track, stores, loyalty, coupons, store-deals, profile
+
+Delivery config (in skill config.json):
+- Instructions: "Leave at the door. Do not knock."
+- Tip: $0 (hardcoded)
+- CustomerID: set from OAuth login on every order
+- Store coupons: pulled from menu endpoint (replaces 403ing /customer/coupons)
 
 ## Structure
 bots/
