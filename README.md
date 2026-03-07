@@ -14,7 +14,7 @@ Monorepo for service automation bots.
 | Project | Description | Language |
 |---------|-------------|----------|
 | **fony** | AI phone calls via Twilio | Node.js |
-| **foodie** | Master food bot -- Dominos ordering, Starbucks store finder, McDonald's menu lookup | Node.js |
+| **food** | Master food bot -- Dominos ordering, Starbucks store finder, McDonald's menu, Chipotle | Node.js |
 
 ## Roadmap
 

@@ -5,14 +5,14 @@ Monorepo for automation bots. Two active projects:
 ## fony
 AI phone calls via Twilio. See fony/CLAUDE.md.
 
-## foodie
-Unified food API. Three classes in one file (foodie/foodbot.js):
+## food
+Unified food API. Four classes in one file (food/foodbot.js):
 - `DominosAPI` -- full ordering pipeline, CA + US, OAuth for rewards/profile
 - `StarbucksAPI` -- store finder works; ordering needs mitmproxy credential intercept
 - `McDonaldsAPI` -- menu/nutrition lookup (CA only), no ordering
 
 Default Dominos order: Large hand tossed (14SCREEN), pepperoni (P) + bacon (K), garlic dip (GARBUTTER).
-Store, address, payment: loaded from .env (see foodie/.env.example).
+Store, address, payment: loaded from .env (see food/.env.example).
 OpenClaw CLI wrapper: ~/.openclaw/workspace/skills/dominos/scripts/order.js
 Commands: usual, place, menu, track, stores, loyalty, coupons, store-deals, profile
 
@@ -25,7 +25,7 @@ Delivery config (in skill config.json):
 ## Structure
 bots/
 ├── fony/
-├── foodie/
+├── food/
 ├── index.html    (GitHub Pages landing)
 ├── README.md
 └── CLAUDE.md

@@ -1,6 +1,6 @@
-# Foodie: Integration Roadmap
+# Food: Integration Roadmap
 
-Current status: Dominos + Starbucks + McDonald's
+Current status: Dominos + Starbucks + McDonald's + Chipotle
 
 ## Working
 

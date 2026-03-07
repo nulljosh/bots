@@ -1,7 +1,7 @@
 {
-  "name": "foodbot",
-  "version": "1.0.0",
-  "description": "Master food bot — Dominos ordering + tracking, Starbucks store finder, McDonald's menu lookup",
+  "name": "food",
+  "version": "1.1.0",
+  "description": "Master food bot — Dominos ordering + tracking, Starbucks store finder, McDonald's menu, Chipotle ordering",
   "type": "module",
   "main": "foodbot.js",
   "scripts": {
@@ -11,6 +11,7 @@
     "dominos",
     "starbucks",
     "mcdonalds",
+    "chipotle",
     "food",
     "pizza",
     "coffee",

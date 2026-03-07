@@ -1,6 +1,6 @@
-# foodie
+# food
 
-Unified food ordering API. Three services in one module (`foodbot.js`).
+Unified food ordering API. Four services in one module (`foodbot.js`).
 
 ## Services
 
@@ -9,6 +9,7 @@ Unified food ordering API. Three services in one module (`foodbot.js`).
 | **Dominos** | Live | Full ordering pipeline, OAuth, loyalty, store deals, tracking |
 | **Starbucks** | Partial | Store finder only. Ordering blocked on API credentials |
 | **McDonald's** | Partial | Menu + nutrition lookup (CA). No ordering |
+| **Chipotle** | Live | Restaurant search, menu, ordering, pickup times, delivery estimates |
 
 ## OpenClaw Integration
 
