@@ -6,7 +6,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  ChipotleAPI, DominosAPI, DominosAuth, DominosItem, DominosOrder,
+  ChipotleAPI, DominosAPI, DominosAuth, DominosItem, DominosMenu, DominosOrder,
   DominosPayment, DominosTracker, McDonaldsAPI, StarbucksAPI, detectCardType,
 } from './foodbot.js';
 
@@ -279,8 +279,11 @@ describe('McDonaldsAPI constructor', () => {
 });
 
 // ─── INTEGRATION TESTS (hit live APIs, run sparingly) ────────────────────────
+// Set RUN_INTEGRATION=1 to run these. Skipped by default.
 
-describe('Dominos', () => {
+const integration = process.env.RUN_INTEGRATION ? describe : describe.skip;
+
+integration('Dominos', () => {
   const api = new DominosAPI({ region: 'ca' });
 
   it('finds stores near Langley', async () => {
@@ -292,7 +295,7 @@ describe('Dominos', () => {
   it('fetches menu for store 10090', async () => {
     const menu = await api.menu.get('10090');
     assert.ok(menu.Products, 'Expected Products in menu');
-    const cats = DominosAPI.Menu?.getCategories?.(menu) ?? [];
+    const cats = DominosMenu.getCategories(menu);
     console.log('Categories:', cats.slice(0, 3));
   });
 
@@ -303,9 +306,11 @@ describe('Dominos', () => {
   });
 });
 
-describe('Dominos Auth + Loyalty', () => {
+integration('Dominos Auth + Loyalty', () => {
+  let api;
+
   it('logs in and checks loyalty points', async () => {
-    const api = new DominosAPI({
+    api = new DominosAPI({
       region: 'ca',
       email: process.env.DOMINOS_EMAIL,
       password: process.env.DOMINOS_PASSWORD,
@@ -320,13 +325,8 @@ describe('Dominos Auth + Loyalty', () => {
     if (status.coupons.length) console.log('Available coupons:', status.coupons);
   });
 
-  it('creates authenticated order with CustomerID', async () => {
-    const api = new DominosAPI({
-      region: 'ca',
-      email: process.env.DOMINOS_EMAIL,
-      password: process.env.DOMINOS_PASSWORD,
-    });
-    await api.login();
+  it('creates authenticated order with CustomerID', () => {
+    assert.ok(api, 'Login test must pass first');
     const order = api.createOrder();
     assert.ok(order.data.CustomerID, 'Expected CustomerID on order');
     assert.ok(order.auth?.accessToken, 'Expected auth passed to order');
@@ -334,7 +334,7 @@ describe('Dominos Auth + Loyalty', () => {
   });
 });
 
-describe("McDonald's", () => {
+integration("McDonald's", () => {
   const mcd = new McDonaldsAPI();
 
   it('fetches categories', async () => {
@@ -346,28 +346,24 @@ describe("McDonald's", () => {
   it('searches for Big Mac', async () => {
     const results = await mcd.search('Big Mac');
     console.log('Big Mac results:', results.slice(0, 3));
-    // May be empty if API changes — not a hard fail
   });
 });
 
-describe('Chipotle', () => {
+integration('Chipotle', () => {
   const api = new ChipotleAPI();
+  let restaurants;
 
   it('searches restaurants near lat/lng', async () => {
     const result = await api.searchRestaurants(49.1, -122.8);
-    const restaurants = Array.isArray(result?.data) ? result.data : (Array.isArray(result) ? result : []);
+    restaurants = Array.isArray(result?.data) ? result.data : (Array.isArray(result) ? result : []);
     assert.ok(restaurants.length > 0, 'Expected at least one Chipotle restaurant');
     console.log('Nearest Chipotle:', restaurants[0]?.restaurantNumber ?? restaurants[0]?.restaurantId ?? restaurants[0]?.id);
   });
 
   it('fetches menu for a searched store', async () => {
-    const result = await api.searchRestaurants(49.1, -122.8);
-    const restaurants = Array.isArray(result?.data) ? result.data : (Array.isArray(result) ? result : []);
-    assert.ok(restaurants.length > 0, 'Expected at least one Chipotle restaurant');
-
+    assert.ok(restaurants?.length, 'Search test must pass first');
     const storeId = restaurants[0]?.restaurantNumber ?? restaurants[0]?.restaurantId ?? restaurants[0]?.id;
     assert.ok(storeId, 'Expected store id from Chipotle search result');
-
     const menu = await api.getMenu(storeId);
     assert.ok(menu, 'Expected menu payload');
   });

@@ -103,14 +103,15 @@ class DominosTracker {
     };
   }
 
-  async poll(phone, intervalMs = 30000, onUpdate) {
-    while (true) {
+  async poll(phone, intervalMs = 30000, onUpdate, maxPolls = 120) {
+    for (let i = 0; i < maxPolls; i++) {
       const data = await this.byPhone(phone);
       const orders = data.OrderStatuses || [];
       if (onUpdate) onUpdate(orders);
-      if (orders.length > 0 && orders.every(o => o.OrderStatus === 'Complete' || o.OrderStatus === 'Delivered')) break;
+      if (orders.length > 0 && orders.every(o => o.OrderStatus === 'Complete' || o.OrderStatus === 'Delivered')) return;
       await new Promise(r => setTimeout(r, intervalMs));
     }
+    throw new Error(`Tracker polling exceeded ${maxPolls} attempts`);
   }
 
   static STAGES = ['Order Placed', 'Prep', 'Bake', 'Quality Check', 'Out for Delivery', 'Delivered'];
@@ -194,7 +195,6 @@ class DominosAuth {
     this.customerId = null;
     this.tokenScope = [];
     this.expiresAt = 0;
-    this.lastAuthAttempt = null;
   }
 
   static decodeJwtPayload(jwt) {
@@ -278,7 +278,6 @@ class DominosAuth {
         this.expiresAt = Date.now() + ((result.data.expires_in || 3600) - 60) * 1000;
         this.customerId = customerId;
         this.tokenScope = tokenScope;
-        this.lastAuthAttempt = { clientId, scope: scope || null, tokenScope };
         return this;
       }
     }
@@ -302,12 +301,16 @@ class DominosAuth {
     };
   }
 
-  async loyalty() {
+  async _authedGet(path) {
     await this.getToken();
-    if (!this.customerId) throw new Error('No CustomerID available. Login may have failed to extract it.');
-    const res = await fetch(`https://api.dominos.ca/power/customer/${this.customerId}/loyalty`, { headers: this.headers });
-    if (!res.ok) throw new Error(`Loyalty fetch failed: ${res.status}`);
+    const res = await fetch(`https://api.dominos.ca/power/${path}`, { headers: this.headers });
+    if (!res.ok) throw new Error(`Dominos ${path} fetch failed: ${res.status}`);
     return res.json();
+  }
+
+  async loyalty() {
+    if (!this.customerId) throw new Error('No CustomerID available. Login may have failed to extract it.');
+    return this._authedGet(`customer/${this.customerId}/loyalty`);
   }
 
   profile() {
@@ -315,19 +318,8 @@ class DominosAuth {
     return DominosAuth.decodeJwtPayload(this.accessToken);
   }
 
-  async coupons() {
-    await this.getToken();
-    const res = await fetch('https://api.dominos.ca/power/customer/coupons', { headers: this.headers });
-    if (!res.ok) throw new Error(`Coupons fetch failed: ${res.status}`);
-    return res.json();
-  }
-
-  async deals() {
-    await this.getToken();
-    const res = await fetch('https://api.dominos.ca/power/customer/deals', { headers: this.headers });
-    if (!res.ok) throw new Error(`Deals fetch failed: ${res.status}`);
-    return res.json();
-  }
+  async coupons() { return this._authedGet('customer/coupons'); }
+  async deals() { return this._authedGet('customer/deals'); }
 }
 
 class DominosAPI {
@@ -465,42 +457,29 @@ class McDonaldsAPI {
   constructor({ market = 'CA', language = 'en' } = {}) {
     this.market = market;
     this.language = language;
-    this.baseUrl = 'https://www.mcdonalds.com/ca/en-ca/eat/nutritioninfo.html';
-    this.apiUrl = 'https://www.mcdonalds.com/ca/en-ca/eat/nutritioninfo.json';
+    const lang = `${language}-${market.toLowerCase()}`;
+    this.apiUrl = `https://www.mcdonalds.com/${market.toLowerCase()}/${lang}/eat/nutritioninfo.json`;
   }
 
-  /**
-   * Fetch all menu categories.
-   * Returns array of { id, name, image }.
-   */
-  async categories() {
-    const url = `${this.apiUrl}`;
+  async _request(url) {
     const res = await fetch(url, {
       headers: {
         'Accept': 'application/json',
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
       },
     });
-    if (!res.ok) throw new Error(`McDonald's API ${res.status}`);
-    const data = await res.json();
+    if (!res.ok) throw new Error(`McDonald's API ${res.status}: ${res.statusText}`);
+    return res.json();
+  }
+
+  async categories() {
+    const data = await this._request(this.apiUrl);
     const cats = data?.pncategories?.category || [];
     return cats.map(c => ({ id: c.field_category_id, name: c.item_name, image: c.thumbnail }));
   }
 
-  /**
-   * Fetch menu items for a category id.
-   * Returns array of { id, name, calories, description }.
-   */
   async menuByCategory(categoryId) {
-    const url = `https://www.mcdonalds.com/ca/en-ca/eat/nutritioninfo.json?item_id=${categoryId}&type=category&lang=en`;
-    const res = await fetch(url, {
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-      },
-    });
-    if (!res.ok) throw new Error(`McDonald's category fetch ${res.status}`);
-    const data = await res.json();
+    const data = await this._request(`${this.apiUrl}?item_id=${categoryId}&type=category&lang=${this.language}`);
     const items = data?.pncategories?.category?.[0]?.menu_item || [];
     return items.map(i => ({
       id: i.field_item_serving_id,
@@ -511,16 +490,10 @@ class McDonaldsAPI {
     }));
   }
 
-  /**
-   * Search menu items by name across all categories.
-   * Fetches categories first, then filters.
-   * Returns array of matches.
-   */
   async search(query) {
     const cats = await this.categories();
     const q = query.toLowerCase();
     const results = [];
-
     await Promise.all(cats.map(async (cat) => {
       try {
         const items = await this.menuByCategory(cat.id);
@@ -530,23 +503,11 @@ class McDonaldsAPI {
         // Skip categories that fail
       }
     }));
-
     return results;
   }
 
-  /**
-   * Fetch nutrition details for a specific item.
-   */
   async nutrition(itemId) {
-    const url = `https://www.mcdonalds.com/ca/en-ca/eat/nutritioninfo.json?item_id=${itemId}&type=item&lang=en`;
-    const res = await fetch(url, {
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-      },
-    });
-    if (!res.ok) throw new Error(`McDonald's nutrition fetch ${res.status}`);
-    return res.json();
+    return this._request(`${this.apiUrl}?item_id=${itemId}&type=item&lang=${this.language}`);
   }
 }
 
