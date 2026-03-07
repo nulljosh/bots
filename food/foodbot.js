@@ -1,10 +1,11 @@
 /**
  * foodbot.js — Master food API
- * Merges dominos + starbot, adds McDonald's menu lookup.
+ * Merges dominos + starbot, adds McDonald's menu lookup + Chipotle ordering.
  *
  * Dominos: store finder, menu, tracker, full ordering (CA + US)
  * Starbucks: store finder, menu lookup, card balance, rewards, ordering (needs API key intercept)
  * McDonald's: menu lookup (CA) — no auth needed
+ * Chipotle: restaurant search, menu, ordering, pickup times, delivery estimates
  */
 
 // ─── DOMINOS ─────────────────────────────────────────────────────────────────
@@ -549,6 +550,129 @@ class McDonaldsAPI {
   }
 }
 
+// ─── CHIPOTLE ────────────────────────────────────────────────────────────────
+
+class ChipotleAPI {
+  constructor() {
+    this.baseUrl = 'https://www.chipotle.com';
+  }
+
+  async _request(method, path, options = {}) {
+    const { params, body, headers = {} } = options;
+    const url = new URL(path, this.baseUrl);
+
+    if (params) {
+      for (const [key, value] of Object.entries(params)) {
+        if (value !== undefined && value !== null) url.searchParams.set(key, String(value));
+      }
+    }
+
+    const res = await fetch(url, {
+      method,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36',
+        ...headers,
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Chipotle API ${res.status}: ${res.statusText} — ${url}`);
+    }
+
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
+  }
+
+  async searchRestaurants(latitude, longitude, radius = 80647) {
+    return this._request('POST', '/restaurant/v3/restaurant', {
+      body: {
+        latitude,
+        longitude,
+        radius,
+        restaurantStatuses: ['OPEN', 'LAB'],
+        conceptIds: ['CMG'],
+        orderBy: 'distance',
+        orderByDescending: false,
+        pageSize: 10,
+        pageIndex: 0,
+        embeds: {
+          addressTypes: ['MAIN'],
+          realHours: true,
+          directions: true,
+          onlineOrdering: true,
+          timezone: true,
+          experience: true,
+          sustainability: true,
+        },
+      },
+    });
+  }
+
+  async getMenu(storeId) {
+    return this._request('GET', `/menuinnovation/v1/restaurants/${storeId}/onlinemenus/compressed`);
+  }
+
+  async getRestaurant(restaurantId, embeds = ['addresses', 'realHours', 'experience', 'onlineOrdering', 'sustainability']) {
+    return this._request('GET', `/restaurant/v3/restaurant/${restaurantId}`, {
+      params: { embed: embeds.join(',') },
+    });
+  }
+
+  async createOrder(restaurantId, orderType = 'Regular', groupOrderMessage = null) {
+    return this._request('POST', '/order/v3/cart/online', {
+      params: { embeds: 'order' },
+      body: {
+        restaurantId,
+        orderType,
+        groupOrderMessage,
+        orderSource: 'WebV2',
+      },
+    });
+  }
+
+  async addMealToOrder(orderId, mealData, etag) {
+    return this._request('POST', `/order/v3/cart/online/${orderId}/meals`, {
+      headers: { 'If-Match': etag },
+      params: { embeds: 'order', finalizePricing: true },
+      body: mealData,
+    });
+  }
+
+  async submitOrder(orderId, paymentData, etag) {
+    return this._request('POST', `/order/v3/submit/online/${orderId}`, {
+      headers: { 'If-Match': etag },
+      body: paymentData,
+    });
+  }
+
+  async getPickupTimes(storeId) {
+    return this._request('GET', `/order/v3/submit/pickuptimes/${storeId}`);
+  }
+
+  async getDeliveryEstimate(deliveryData) {
+    return this._request('POST', '/order/v3/delivery/estimate', {
+      body: deliveryData,
+    });
+  }
+
+  async getOrder(orderId, finalizePricing = true) {
+    return this._request('GET', `/order/v3/cart/online/${orderId}`, {
+      params: { finalizePricing },
+    });
+  }
+
+  async addDeliveryInfo(orderId, deliveryData, etag) {
+    return this._request('PUT', `/order/v3/cart/online/${orderId}/delivery`, {
+      headers: { 'If-Match': etag },
+      params: { embeds: 'order', finalizePricing: true },
+      body: deliveryData,
+    });
+  }
+}
+
 // ─── EXPORTS ─────────────────────────────────────────────────────────────────
 
 export {
@@ -559,4 +683,6 @@ export {
   StarbucksAPI,
   // McDonald's
   McDonaldsAPI,
+  // Chipotle
+  ChipotleAPI,
 };

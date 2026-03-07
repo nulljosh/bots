@@ -5,7 +5,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { DominosAPI, McDonaldsAPI } from './foodbot.js';
+import { ChipotleAPI, DominosAPI, McDonaldsAPI } from './foodbot.js';
 
 describe('Dominos', () => {
   const api = new DominosAPI({ region: 'ca' });
@@ -74,5 +74,28 @@ describe("McDonald's", () => {
     const results = await mcd.search('Big Mac');
     console.log('Big Mac results:', results.slice(0, 3));
     // May be empty if API changes — not a hard fail
+  });
+});
+
+describe('Chipotle', () => {
+  const api = new ChipotleAPI();
+
+  it('searches restaurants near lat/lng', async () => {
+    const result = await api.searchRestaurants(49.1, -122.8);
+    const restaurants = Array.isArray(result?.data) ? result.data : (Array.isArray(result) ? result : []);
+    assert.ok(restaurants.length > 0, 'Expected at least one Chipotle restaurant');
+    console.log('Nearest Chipotle:', restaurants[0]?.restaurantNumber ?? restaurants[0]?.restaurantId ?? restaurants[0]?.id);
+  });
+
+  it('fetches menu for a searched store', async () => {
+    const result = await api.searchRestaurants(49.1, -122.8);
+    const restaurants = Array.isArray(result?.data) ? result.data : (Array.isArray(result) ? result : []);
+    assert.ok(restaurants.length > 0, 'Expected at least one Chipotle restaurant');
+
+    const storeId = restaurants[0]?.restaurantNumber ?? restaurants[0]?.restaurantId ?? restaurants[0]?.id;
+    assert.ok(storeId, 'Expected store id from Chipotle search result');
+
+    const menu = await api.getMenu(storeId);
+    assert.ok(menu, 'Expected menu payload');
   });
 });
