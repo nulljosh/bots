@@ -933,48 +933,23 @@ class FirehouseSubsAPI {
       query Restaurant($storeId: String!) {
         restaurant(storeId: $storeId) {
           storeId
-          name
-          latitude
-          longitude
-          status
-          physicalAddress { address1 city stateProvince postalCode }
-          operatingHours { isCurrentlyOpen hoursOfOperation { dayOfWeek open close } }
         }
       }
     `, { storeId });
     return data?.restaurant || null;
   }
 
-  async getMenu(storeId) {
+  async getMenu(storeId, region = 'US') {
     const data = await this._graphql(`
-      query MenuSections($storeId: String!) {
-        getMenuSectionsForRestaurant(storeId: $storeId) {
+      query StoreMenu($storeId: ID!, $region: String!) {
+        storeMenu(storeId: $storeId, region: $region, channel: whitelabel) {
           id
-          name
-          description
-          image { uri }
-          items { id name description image { uri } price calories }
+          price { default min max }
+          calories { default min max }
         }
       }
-    `, { storeId });
-    return data?.getMenuSectionsForRestaurant || [];
-  }
-
-  async getMenuItem(storeId, itemId) {
-    const data = await this._graphql(`
-      query MenuItem($storeId: String!, $itemId: String!) {
-        getMenuItemForRestaurant(storeId: $storeId, itemId: $itemId) {
-          id
-          name
-          description
-          image { uri }
-          price
-          calories
-          options { id name type items { id name price calories } }
-        }
-      }
-    `, { storeId, itemId });
-    return data?.getMenuItemForRestaurant || null;
+    `, { storeId, region });
+    return data?.storeMenu || [];
   }
 }
 

@@ -11,7 +11,7 @@ Seven classes, one file:
 - `ChipotleAPI` — restaurant search, menu, ordering, pickup times, delivery estimates
 - `TacoBellAPI` — location search, menu, cart/ordering, delivery estimates, promotions
 - `PizzaHutAPI` — store finder, menu, cart/ordering, session-based auth (quikorder API)
-- `FirehouseSubsAPI` — store search, menu lookup (RBI GraphQL gateway, no auth for public queries, ordering needs Cognito)
+- `FirehouseSubsAPI` — store search + menu (RBI GraphQL gateway, no auth for public queries, ordering needs Cognito). Menu returns item IDs with price/calories but no names (Entity type lacks name field; app resolves names from Sanity CMS). Introspection disabled.
 
 ## Dominos Config
 - Store, address, phone, payment: loaded from .env (see .env.example)
