@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 750" preserveAspectRatio="xMidYMid meet" font-family="-apple-system, system-ui, sans-serif">
+  <defs>
+    <style>
+      .box { fill: #1a1a1a; stroke: #0a84ff; stroke-width: 2; }
+      .box-api { fill: #1a1a1a; stroke: #30d158; stroke-width: 2; }
+      .label { fill: #e0e0e0; font-size: 12px; text-anchor: middle; font-weight: 500; }
+      .sub { fill: #888; font-size: 9px; text-anchor: middle; }
+      .arrow { stroke: #666; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .specs { fill: #e0e0e0; font-size: 11px; }
+      .specs-sub { fill: #888; font-size: 9px; }
+      .title { fill: #0a84ff; font-size: 16px; font-weight: bold; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#666"/>
+    </marker>
+  </defs>
+
+  <rect width="1000" height="750" fill="#111"/>
+
+  <!-- Title -->
+  <text x="500" y="30" class="title" text-anchor="middle">foodie — Food Ordering Bot</text>
+  <text x="500" y="50" class="sub" text-anchor="middle">Chipotle • Taco Bell • Dominos • Starbucks • McDonald's</text>
+
+  <!-- Layer 1: Input Methods -->
+  <text x="30" y="80" class="specs" fill="#0a84ff" font-weight="bold">INPUT</text>
+
+  <rect x="30" y="95" width="90" height="50" rx="4" class="box"/>
+  <text x="75" y="117" class="label">iMessage</text>
+  <text x="75" y="130" class="sub">/food cmd</text>
+
+  <rect x="140" y="95" width="90" height="50" rx="4" class="box"/>
+  <text x="185" y="117" class="label">SMS</text>
+  <text x="185" y="130" class="sub">Text order</text>
+
+  <rect x="250" y="95" width="90" height="50" rx="4" class="box"/>
+  <text x="295" y="117" class="label">Web UI</text>
+  <text x="295" y="130" class="sub">Browser</text>
+
+  <rect x="360" y="95" width="90" height="50" rx="4" class="box"/>
+  <text x="405" y="117" class="label">API</text>
+  <text x="405" y="130" class="sub">Programmatic</text>
+
+  <!-- Arrows down -->
+  <line x1="75" y1="145" x2="75" y2="175" class="arrow"/>
+  <line x1="185" y1="145" x2="185" y2="175" class="arrow"/>
+  <line x1="295" y1="145" x2="295" y2="175" class="arrow"/>
+  <line x1="405" y1="145" x2="405" y2="175" class="arrow"/>
+
+  <!-- Layer 2: Processing -->
+  <text x="30" y="175" class="specs" fill="#0a84ff" font-weight="bold">PROCESSING</text>
+
+  <rect x="30" y="190" width="110" height="50" rx="4" class="box"/>
+  <text x="85" y="212" class="label">Parser</text>
+  <text x="85" y="225" class="sub">Intent extraction</text>
+
+  <line x1="140" y1="215" x2="160" y2="215" class="arrow"/>
+
+  <rect x="160" y="190" width="110" height="50" rx="4" class="box"/>
+  <text x="215" y="212" class="label">Store Finder</text>
+  <text x="215" y="225" class="sub">Location search</text>
+
+  <line x1="270" y1="215" x2="290" y2="215" class="arrow"/>
+
+  <rect x="290" y="190" width="110" height="50" rx="4" class="box"/>
+  <text x="345" y="212" class="label">Order Builder</text>
+  <text x="345" y="225" class="sub">Cart & pricing</text>
+
+  <line x1="400" y1="215" x2="420" y2="215" class="arrow"/>
+
+  <rect x="420" y="190" width="110" height="50" rx="4" class="box"/>
+  <text x="475" y="212" class="label">Payment</text>
+  <text x="475" y="225" class="sub">Tokenization</text>
+
+  <!-- Arrow down -->
+  <line x1="475" y1="240" x2="475" y2="270" class="arrow"/>
+
+  <!-- Layer 3: API Integrations -->
+  <text x="30" y="270" class="specs" fill="#30d158" font-weight="bold">INTEGRATIONS</text>
+
+  <rect x="30" y="285" width="95" height="85" rx="4" class="box-api"/>
+  <text x="77.5" y="305" class="label">Chipotle</text>
+  <text x="77.5" y="318" class="sub">7 endpoints</text>
+  <text x="77.5" y="328" class="sub">v3 API</text>
+  <text x="77.5" y="338" class="sub">ETag lock ✓</text>
+
+  <rect x="145" y="285" width="95" height="85" rx="4" class="box-api"/>
+  <text x="192.5" y="305" class="label">Taco Bell</text>
+  <text x="192.5" y="318" class="sub">24 endpoints</text>
+  <text x="192.5" y="328" class="sub">v1 API</text>
+  <text x="192.5" y="338" class="sub">Full flow ✓</text>
+
+  <rect x="260" y="285" width="95" height="85" rx="4" class="box-api"/>
+  <text x="307.5" y="305" class="label">Dominos</text>
+  <text x="307.5" y="318" class="sub">Full ordering</text>
+  <text x="307.5" y="328" class="sub">Tracking</text>
+  <text x="307.5" y="338" class="sub">CA + US ✓</text>
+
+  <rect x="375" y="285" width="95" height="85" rx="4" class="box-api"/>
+  <text x="422.5" y="305" class="label">Starbucks</text>
+  <text x="422.5" y="318" class="sub">Store/rewards</text>
+  <text x="422.5" y="328" class="sub">Balance</text>
+  <text x="422.5" y="338" class="sub">Auth needed</text>
+
+  <rect x="490" y="285" width="95" height="85" rx="4" class="box-api"/>
+  <text x="537.5" y="305" class="label">McDonald's</text>
+  <text x="537.5" y="318" class="sub">Menu/nutrition</text>
+  <text x="537.5" y="328" class="sub">Categories</text>
+  <text x="537.5" y="338" class="sub">Read-only ✓</text>
+
+  <!-- Arrow down -->
+  <line x1="192.5" y1="370" x2="192.5" y2="400" class="arrow"/>
+  <line x1="307.5" y1="370" x2="307.5" y2="400" class="arrow"/>
+
+  <!-- Layer 4: Confirmation -->
+  <text x="30" y="400" class="specs" fill="#0a84ff" font-weight="bold">OUTPUT</text>
+
+  <rect x="50" y="415" width="130" height="50" rx="4" class="box"/>
+  <text x="115" y="437" class="label">Order Confirmed</text>
+  <text x="115" y="450" class="sub">Price, ETA, store</text>
+
+  <rect x="210" y="415" width="130" height="50" rx="4" class="box"/>
+  <text x="275" y="437" class="label">Pickup Code</text>
+  <text x="275" y="450" class="sub">8-digit code</text>
+
+  <rect x="370" y="415" width="130" height="50" rx="4" class="box"/>
+  <text x="435" y="437" class="label">Real-time Status</text>
+  <text x="435" y="450" class="sub">Tracking updates</text>
+
+  <!-- Specs Section -->
+  <line x1="30" y1="510" x2="970" y2="510" stroke="#333" stroke-width="1"/>
+
+  <text x="30" y="535" class="specs" fill="#0a84ff" font-weight="bold">Integration Status</text>
+  <text x="30" y="555" class="specs-sub">Chipotle: Real API reverse-engineered, 7 endpoints mapped, ETag concurrency control, v3</text>
+  <text x="30" y="570" class="specs-sub">Taco Bell: Real API reverse-engineered (45 min), 24 endpoints mapped, full cart/order flow, session-based auth, v1</text>
+  <text x="30" y="585" class="specs-sub">Dominos: Production-ready, full ordering + tracking (CA + US)</text>
+  <text x="30" y="600" class="specs-sub">Starbucks: Store finder + rewards lookup (needs credentials from app intercept)</text>
+  <text x="30" y="615" class="specs-sub">McDonald's: Menu + nutrition lookup (read-only, no ordering API)</text>
+
+  <line x1="30" y1="635" x2="970" y2="635" stroke="#333" stroke-width="1"/>
+
+  <text x="30" y="660" class="specs" fill="#0a84ff" font-weight="bold">Commands</text>
+  <text x="30" y="680" class="specs-sub">/food chipotle bowl:chicken guac  |  /food tacobell burrito  |  /food dominos pizza location:langley  |  /food status 847263</text>
+  <text x="30" y="700" class="specs-sub">SMS: "tacobell burrito" → "✓ Order placed. Code: 847263. Ready in 20 min"</text>
+</svg>
