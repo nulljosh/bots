@@ -30,6 +30,37 @@ describe('Dominos', () => {
   });
 });
 
+describe('Dominos Auth + Loyalty', () => {
+  it('logs in and checks loyalty points', async () => {
+    const api = new DominosAPI({
+      region: 'ca',
+      email: process.env.DOMINOS_EMAIL,
+      password: process.env.DOMINOS_PASSWORD,
+    });
+    await api.login();
+    assert.ok(api.auth.accessToken, 'Expected access token');
+    assert.ok(api.auth.customerId, 'Expected customer ID');
+
+    const status = await api.loyaltyStatus();
+    assert.ok(typeof status.points === 'number', 'Expected numeric points');
+    console.log(`Loyalty: ${status.points}/${status.threshold} points (${status.remaining} to free pizza)`);
+    if (status.coupons.length) console.log('Available coupons:', status.coupons);
+  });
+
+  it('creates authenticated order with CustomerID', async () => {
+    const api = new DominosAPI({
+      region: 'ca',
+      email: process.env.DOMINOS_EMAIL,
+      password: process.env.DOMINOS_PASSWORD,
+    });
+    await api.login();
+    const order = api.createOrder();
+    assert.ok(order.data.CustomerID, 'Expected CustomerID on order');
+    assert.ok(order.auth?.accessToken, 'Expected auth passed to order');
+    console.log('Order CustomerID:', order.data.CustomerID);
+  });
+});
+
 describe("McDonald's", () => {
   const mcd = new McDonaldsAPI();
 

@@ -137,8 +137,9 @@ class DominosPayment {
 }
 
 class DominosOrder {
-  constructor(baseUrl, region) {
+  constructor(baseUrl, region, auth = null) {
     this.baseUrl = baseUrl;
+    this.auth = auth;
     this.data = {
       Address: {}, Coupons: [], CustomerID: '', Extension: '',
       OrderChannel: 'OLO', OrderID: '', NoCombine: true,
@@ -160,14 +161,20 @@ class DominosOrder {
   orderInFuture(date) { if (date < Date.now()) throw new Error('Date must be future'); this.data.FutureOrderTime = date.toISOString().replace('T', ' ').replace('.000Z', ''); return this; }
   orderNow() { delete this.data.FutureOrderTime; return this; }
 
-  async validate() { const res = await dominosRequest(`${this.baseUrl}/power/validate-order`, { method: 'POST', headers: { 'DPZ-Market': 'CANADA' }, body: JSON.stringify({ Order: { ...this.data, Market: 'CANADA' } }) }); return { valid: res.Status !== -1, ...res }; }
-  async price() { const res = await dominosRequest(`${this.baseUrl}/power/price-order`, { method: 'POST', headers: { 'DPZ-Market': 'CANADA' }, body: JSON.stringify({ Order: { ...this.data, Market: 'CANADA' } }) }); if (res.Status === -1) throw new Error('Pricing failed: ' + JSON.stringify(res.StatusItems)); return res; }
+  _authHeaders() {
+    const h = { 'DPZ-Market': 'CANADA' };
+    if (this.auth?.accessToken) h['Authorization'] = `Bearer ${this.auth.accessToken}`;
+    return h;
+  }
+
+  async validate() { const res = await dominosRequest(`${this.baseUrl}/power/validate-order`, { method: 'POST', headers: this._authHeaders(), body: JSON.stringify({ Order: { ...this.data, Market: 'CANADA' } }) }); return { valid: res.Status !== -1, ...res }; }
+  async price() { const res = await dominosRequest(`${this.baseUrl}/power/price-order`, { method: 'POST', headers: this._authHeaders(), body: JSON.stringify({ Order: { ...this.data, Market: 'CANADA' } }) }); if (res.Status === -1) throw new Error('Pricing failed: ' + JSON.stringify(res.StatusItems)); return res; }
   async place() {
     if (!this.data.StoreID) throw new Error('Store ID required');
     if (!this.data.Products.length) throw new Error('No items in order');
     if (!this.data.Payments.length) throw new Error('Payment required');
     if (!this.data.Address.Region) throw new Error('Address region required');
-    return dominosRequest(`${this.baseUrl}/power/place-order`, { method: 'POST', headers: { 'DPZ-Market': 'CANADA' }, body: JSON.stringify({ Order: { ...this.data, Market: 'CANADA' } }) });
+    return dominosRequest(`${this.baseUrl}/power/place-order`, { method: 'POST', headers: this._authHeaders(), body: JSON.stringify({ Order: { ...this.data, Market: 'CANADA' } }) });
   }
 }
 
@@ -176,10 +183,10 @@ class DominosAuth {
     this.email = email;
     this.password = password;
     this.clientIds = Array.from(new Set(
-      [clientId, ...(Array.isArray(clientIds) ? clientIds : []), process.env.DOMINOS_CLIENT_ID, 'nolo-ca', 'nolo'].filter(Boolean),
+      [clientId, ...(Array.isArray(clientIds) ? clientIds : []), process.env.DOMINOS_CLIENT_ID, 'nolo'].filter(Boolean),
     ));
     this.scopeCandidates = Array.from(new Set(
-      (Array.isArray(scopes) && scopes.length ? scopes : ['openid profile customer', 'openid customer profile', 'customer', 'openid profile', '']).map(s => (s || '').trim()),
+      (Array.isArray(scopes) && scopes.length ? scopes : ['customer:loyalty:read customer:profile:read:basic customer:card:read customer:orderHistory:read customer:card:update customer:profile:update']).map(s => (s || '').trim()),
     ));
     this.tokenUrl = 'https://api.dominos.ca/as/token.oauth2';
     this.accessToken = null;
@@ -226,7 +233,7 @@ class DominosAuth {
   }
 
   async hasCustomerAccess(token, customerId) {
-    if (!token) return false;
+    if (!token || !customerId) return false;
     const headers = {
       ...DOMINOS_HEADERS,
       'Authorization': `Bearer ${token}`,
@@ -234,17 +241,12 @@ class DominosAuth {
       'Origin': 'https://order.dominos.ca',
       'Referer': 'https://order.dominos.ca/en/pages/order/',
     };
-    const urls = ['https://api.dominos.ca/power/customer/rewards'];
-    if (customerId) urls.push(`https://api.dominos.ca/power/customer/${customerId}/profile`);
-    for (const url of urls) {
-      try {
-        const res = await fetch(url, { headers });
-        if (res.status === 200) return true;
-      } catch {
-        // Continue to next endpoint if an endpoint request fails.
-      }
+    try {
+      const res = await fetch(`https://api.dominos.ca/power/customer/${customerId}/loyalty`, { headers });
+      return res.status === 200;
+    } catch {
+      return false;
     }
-    return false;
   }
 
   async login() {
@@ -299,19 +301,17 @@ class DominosAuth {
     };
   }
 
-  async rewards() {
+  async loyalty() {
     await this.getToken();
-    const res = await fetch('https://api.dominos.ca/power/customer/rewards', { headers: this.headers });
-    if (!res.ok) throw new Error(`Rewards fetch failed: ${res.status}`);
+    if (!this.customerId) throw new Error('No CustomerID available. Login may have failed to extract it.');
+    const res = await fetch(`https://api.dominos.ca/power/customer/${this.customerId}/loyalty`, { headers: this.headers });
+    if (!res.ok) throw new Error(`Loyalty fetch failed: ${res.status}`);
     return res.json();
   }
 
-  async profile() {
-    await this.getToken();
-    const customerPath = this.customerId ? `/${this.customerId}` : '';
-    const res = await fetch(`https://api.dominos.ca/power/customer${customerPath}/profile`, { headers: this.headers });
-    if (!res.ok) throw new Error(`Profile fetch failed: ${res.status}`);
-    return res.json();
+  profile() {
+    if (!this.accessToken) throw new Error('Not authenticated. Call login() first.');
+    return DominosAuth.decodeJwtPayload(this.accessToken);
   }
 
   async coupons() {
@@ -347,15 +347,24 @@ class DominosAPI {
   }
 
   createOrder() {
-    const order = new DominosOrder(this.config.order, this.region);
+    const order = new DominosOrder(this.config.order, this.region, this.auth);
     if (this.auth?.customerId) order.data.CustomerID = this.auth.customerId;
     return order;
   }
   createItem(code, qty, options) { return new DominosItem(code, qty, options); }
   createPayment(details) { return new DominosPayment(details); }
-  async checkRewards() {
+  async checkLoyalty() {
     if (!this.auth) throw new Error('No credentials provided. Pass email+password to DominosAPI().');
-    return this.auth.rewards();
+    return this.auth.loyalty();
+  }
+  async loyaltyStatus() {
+    const data = await this.checkLoyalty();
+    const points = data?.VestedPointBalance ?? 0;
+    const pending = data?.PendingPointBalance ?? 0;
+    const threshold = 60;
+    const remaining = Math.max(0, threshold - points);
+    const coupons = data?.LoyaltyCoupons || [];
+    return { points, pending, remaining, threshold, hasFreeReward: remaining === 0, coupons, raw: data };
   }
   async getCoupons() {
     if (!this.auth) throw new Error('No credentials provided. Pass email+password to DominosAPI().');
