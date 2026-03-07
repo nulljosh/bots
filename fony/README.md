@@ -1,4 +1,8 @@
+![Fony](icon.svg)
+
 # Fony
+
+![version](https://img.shields.io/badge/version-v0.6.0-blue)
 
 AI-powered daily briefing phone calls. Calls you every morning with weather, calendar, stocks, and news.
 

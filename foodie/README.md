@@ -1,4 +1,8 @@
-# Foodie — Master Food Bot
+![Foodie](icon.svg)
+
+# Foodie
+
+![version](https://img.shields.io/badge/version-v0.1.0-blue)
 
 Food ordering automation for Dominos, Chipotle, Starbucks, McDonald's.
 
