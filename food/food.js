@@ -1,5 +1,5 @@
 /**
- * foodbot.js — Master food API
+ * food.js — Master food API
  * Merges dominos + starbot, adds McDonald's menu lookup + Chipotle ordering.
  *
  * Dominos: store finder, menu, tracker, full ordering (CA + US)

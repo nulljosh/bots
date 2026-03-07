@@ -1,6 +1,6 @@
-# foodbot — Agent Notes
+# food — Agent Notes
 
-Merged from `dominos/` and `starbot/`. Single module: `foodbot.js`.
+Merged from `dominos/` and `starbot/`. Single module: `food.js`.
 
 ## Architecture
 

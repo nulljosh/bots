@@ -1,5 +1,5 @@
 /**
- * foodbot tests — unit tests run offline, integration tests hit live APIs.
+ * food tests — unit tests run offline, integration tests hit live APIs.
  * node --test test.js
  */
 
@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import {
   ChipotleAPI, DominosAPI, DominosAuth, DominosItem, DominosMenu, DominosOrder,
   DominosPayment, DominosTracker, McDonaldsAPI, PizzaHutAPI, StarbucksAPI, TacoBellAPI, detectCardType,
-} from './foodbot.js';
+} from './food.js';
 
 // ─── UNIT TESTS (offline, no API calls) ─────────────────────────────────────
 

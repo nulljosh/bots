@@ -30,15 +30,15 @@ Current status: Dominos + Starbucks + McDonald's + Chipotle + Taco Bell + Pizza 
 
 1. **Chipotle** -- DONE (v1.1.0)
    - Restaurant search, menu, ordering, pickup times, delivery estimates
-   - Integrated into foodbot.js as ChipotleAPI
+   - Integrated into food.js as ChipotleAPI
 
 2. **Taco Bell** -- DONE (v2.0.0)
    - Location search, menu, cart/ordering, delivery estimates, promotions
-   - 18 methods, ported from src/tacobell.js to foodbot.js as TacoBellAPI
+   - 18 methods, ported from src/tacobell.js to food.js as TacoBellAPI
 
 3. **Pizza Hut** -- DONE (v3.0.0)
    - Store finder, menu, cart/ordering, session-based auth
-   - Integrated into foodbot.js as PizzaHutAPI
+   - Integrated into food.js as PizzaHutAPI
    - Uses quikorder.pizzahut.com legacy API with temp session tokens
 
 ### Not Viable
@@ -81,7 +81,7 @@ For each new chain:
 1. Research Chipotle API availability (check network tab on chipotle.com)
 2. Test Taco Bell API endpoints
 3. Pick one, implement, test
-4. Add to unified foodbot interface
+4. Add to unified food interface
 5. Deploy + document
 
 Estimated time to add 2 chains: 1-2 days
@@ -101,7 +101,7 @@ Text-to-order: Josh texts "chipotle burrito bowl" → order placed → pickup re
    - Extract restaurant + items + quantity + mods
    - Confirm price + ETA before placing
 
-3. **Auto-Order** (foodbot)
+3. **Auto-Order** (food)
    - Find nearest location
    - Build order with cart
    - Place with saved payment
@@ -125,8 +125,8 @@ Text-to-order: Josh texts "chipotle burrito bowl" → order placed → pickup re
 
 ### Tech Stack
 - **Parser:** Claude (extract intent, items, quantity)
-- **Ordering:** foodbot.ChipotleAPI
-- **Tracker:** foodbot polling + webhook callback
+- **Ordering:** food.ChipotleAPI
+- **Tracker:** food polling + webhook callback
 - **Notification:** OpenClaw message tool
 
 ### Estimated Effort

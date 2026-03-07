@@ -6,7 +6,7 @@ Monorepo for automation bots. Two active projects:
 AI phone calls via Twilio. See fony/CLAUDE.md.
 
 ## food
-Unified food API. Six classes in one file (food/foodbot.js):
+Unified food API. Six classes in one file (food/food.js):
 - `DominosAPI` -- full ordering pipeline, CA + US, OAuth for rewards/profile
 - `StarbucksAPI` -- store finder works; ordering needs mitmproxy credential intercept
 - `McDonaldsAPI` -- menu/nutrition lookup (CA only), no ordering

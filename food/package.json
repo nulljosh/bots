@@ -3,7 +3,7 @@
   "version": "3.0.0",
   "description": "Master food bot — Dominos ordering + tracking, Starbucks store finder, McDonald's menu, Chipotle ordering, Taco Bell ordering, Pizza Hut ordering",
   "type": "module",
-  "main": "foodbot.js",
+  "main": "food.js",
   "scripts": {
     "test": "node --test test.js"
   },

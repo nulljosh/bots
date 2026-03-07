@@ -1,6 +1,6 @@
 # food
 
-Unified food ordering API. Six services in one module (`foodbot.js`).
+Unified food ordering API. Six services in one module (`food.js`).
 
 ## Services
 
