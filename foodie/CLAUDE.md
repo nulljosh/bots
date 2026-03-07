@@ -29,6 +29,13 @@ Three classes, one file:
 - Status: blocked on API credentials
 - Need: client_id + client_secret from Starbucks Android app intercept (mitmproxy)
 - storesByAddress() works without auth (public BFF endpoint)
+- All open-source API wrappers are dead (2017 era), keys rotated, cert pinning active
+
+### Starbucks Roadmap
+- [ ] Balance check via Puppeteer scrape of app.starbucks.com (no API creds needed)
+- [ ] Enable auto-reload in Starbucks app (manual, no code needed)
+- [ ] Update Opticon financeData.js balance from scrape result
+- [ ] (stretch) Extract fresh client_id/secret from APK via apktool if ordering is needed
 
 ## Testing
 Run sparingly — hits live APIs. Don't spam order.price() or place() in testing.
