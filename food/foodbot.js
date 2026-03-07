@@ -7,6 +7,7 @@
  * McDonald's: menu lookup (CA) — no auth needed
  * Chipotle: restaurant search, menu, ordering, pickup times, delivery estimates
  * Taco Bell: location search, menu, cart/ordering, delivery estimates, promotions
+ * Pizza Hut: store finder, menu, cart/ordering, session-based auth
  */
 
 // ─── DOMINOS ─────────────────────────────────────────────────────────────────
@@ -771,6 +772,110 @@ class TacoBellAPI {
   }
 }
 
+// ─── PIZZA HUT ───────────────────────────────────────────────────────────────
+
+class PizzaHutAPI {
+  constructor({ sessionToken = null } = {}) {
+    this.baseUrl = 'https://quikorder.pizzahut.com/phorders3/service.php';
+    this.sessionToken = sessionToken;
+    this.accountID = 'phimc2api';
+    this.accountPW = 'fs112358';
+  }
+
+  async _request(requestType, data = {}) {
+    const payload = {
+      version: '2.0',
+      appsource: 'Android',
+      appversion: '2.1.2',
+      request: requestType,
+      data: JSON.stringify({
+        accountID: this.accountID,
+        accountPW: this.accountPW,
+        ...data,
+      }),
+    };
+
+    const body = new URLSearchParams();
+    for (const [key, value] of Object.entries(payload)) {
+      body.set(key, value);
+    }
+
+    const res = await fetch(this.baseUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json',
+        'User-Agent': 'PizzaHut Android/2.1.2',
+      },
+      body: body.toString(),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Pizza Hut API ${res.status}: ${res.statusText}`);
+    }
+
+    return res.json();
+  }
+
+  async generateSession(address) {
+    const data = await this._request('GenerateTempAccount', { address });
+    if (data.sessionToken) this.sessionToken = data.sessionToken;
+    return data;
+  }
+
+  async searchStores(zip) {
+    return this._request('FindNearByAddress', { customer_zip: zip });
+  }
+
+  async getMenu(unitID, occasion = 'D', section = 'category', subsection = 'APICAROUSEL') {
+    return this._request('GetMenuItems', { unitID, occasion, section, subsection });
+  }
+
+  async getMenuSection(unitID, section, occasion = 'D') {
+    return this._request('GetMenuItems', { unitID, occasion, section, subsection: section });
+  }
+
+  async startOrder(unitID, occasion = 'D', locationIndex = 0) {
+    if (!this.sessionToken) throw new Error('No session token. Call generateSession() first.');
+    return this._request('HTMLOrder', {
+      sessionToken: this.sessionToken,
+      unitID,
+      occasion,
+      location_index: locationIndex,
+      action: 'start',
+    });
+  }
+
+  async addItemToOrder(unitID, itemData) {
+    if (!this.sessionToken) throw new Error('No session token. Call generateSession() first.');
+    return this._request('HTMLOrder', {
+      sessionToken: this.sessionToken,
+      unitID,
+      action: 'add',
+      ...itemData,
+    });
+  }
+
+  async submitOrder(unitID, paymentData) {
+    if (!this.sessionToken) throw new Error('No session token. Call generateSession() first.');
+    return this._request('HTMLOrder', {
+      sessionToken: this.sessionToken,
+      unitID,
+      action: 'submit',
+      ...paymentData,
+    });
+  }
+
+  async getOrder(unitID) {
+    if (!this.sessionToken) throw new Error('No session token. Call generateSession() first.');
+    return this._request('HTMLOrder', {
+      sessionToken: this.sessionToken,
+      unitID,
+      action: 'status',
+    });
+  }
+}
+
 // ─── EXPORTS ─────────────────────────────────────────────────────────────────
 
 export {
@@ -785,4 +890,6 @@ export {
   ChipotleAPI,
   // Taco Bell
   TacoBellAPI,
+  // Pizza Hut
+  PizzaHutAPI,
 };

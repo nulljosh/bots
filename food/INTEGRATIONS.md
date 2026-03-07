@@ -1,6 +1,6 @@
 # Food: Integration Roadmap
 
-Current status: Dominos + Starbucks + McDonald's + Chipotle + Taco Bell
+Current status: Dominos + Starbucks + McDonald's + Chipotle + Taco Bell + Pizza Hut
 
 ## Working
 
@@ -36,17 +36,20 @@ Current status: Dominos + Starbucks + McDonald's + Chipotle + Taco Bell
    - Location search, menu, cart/ordering, delivery estimates, promotions
    - 18 methods, ported from src/tacobell.js to foodbot.js as TacoBellAPI
 
-3. **Subway**
-   - Menu API likely exists
-   - Franchise-based locations
-   - Order: Needs investigation
-   - ROI: Medium
+3. **Pizza Hut** -- DONE (v3.0.0)
+   - Store finder, menu, cart/ordering, session-based auth
+   - Integrated into foodbot.js as PizzaHutAPI
+   - Uses quikorder.pizzahut.com legacy API with temp session tokens
 
-### Medium Priority
+### Not Viable
 
-4. **Pizza Hut** (Competitor to Dominos)
-5. **Uber Eats / DoorDash** (Meta platforms for all restaurants)
-6. **Grubhub API** (Public API available)
+4. **Subway** -- No public API. Mobile app uses cert pinning + root detection. No reverse-engineered endpoints available. Dead end.
+
+5. **Grubhub** -- Merchant-facing API only (menu/order management for restaurants). Not consumer ordering.
+
+6. **DoorDash** -- Drive API is logistics/delivery-as-a-service, not consumer ordering. Production access restricted to business partners.
+
+7. **Uber Eats** -- Merchant-facing marketplace API. Requires business registration. Not consumer ordering.
 
 ### Low Priority (Paywall/No Public API)
 

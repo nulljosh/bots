@@ -1,7 +1,7 @@
 {
   "name": "food",
-  "version": "2.0.0",
-  "description": "Master food bot — Dominos ordering + tracking, Starbucks store finder, McDonald's menu, Chipotle ordering, Taco Bell ordering",
+  "version": "3.0.0",
+  "description": "Master food bot — Dominos ordering + tracking, Starbucks store finder, McDonald's menu, Chipotle ordering, Taco Bell ordering, Pizza Hut ordering",
   "type": "module",
   "main": "foodbot.js",
   "scripts": {
@@ -13,6 +13,7 @@
     "mcdonalds",
     "chipotle",
     "tacobell",
+    "pizzahut",
     "food",
     "pizza",
     "coffee",

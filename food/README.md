@@ -1,6 +1,6 @@
 # food
 
-Unified food ordering API. Five services in one module (`foodbot.js`).
+Unified food ordering API. Six services in one module (`foodbot.js`).
 
 ## Services
 
@@ -11,6 +11,7 @@ Unified food ordering API. Five services in one module (`foodbot.js`).
 | **McDonald's** | Partial | Menu + nutrition lookup (CA). No ordering |
 | **Chipotle** | Live | Restaurant search, menu, ordering, pickup times, delivery estimates |
 | **Taco Bell** | Live | Location search, menu, cart/ordering, delivery estimates, promotions |
+| **Pizza Hut** | Live | Store finder, menu, cart/ordering, session-based auth |
 
 ## OpenClaw Integration
 

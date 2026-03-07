@@ -7,7 +7,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   ChipotleAPI, DominosAPI, DominosAuth, DominosItem, DominosMenu, DominosOrder,
-  DominosPayment, DominosTracker, McDonaldsAPI, StarbucksAPI, TacoBellAPI, detectCardType,
+  DominosPayment, DominosTracker, McDonaldsAPI, PizzaHutAPI, StarbucksAPI, TacoBellAPI, detectCardType,
 } from './foodbot.js';
 
 // ─── UNIT TESTS (offline, no API calls) ─────────────────────────────────────
@@ -299,6 +299,50 @@ describe('TacoBellAPI (offline)', () => {
   });
 });
 
+describe('PizzaHutAPI (offline)', () => {
+  it('constructs with correct baseUrl', () => {
+    const api = new PizzaHutAPI();
+    assert.equal(api.baseUrl, 'https://quikorder.pizzahut.com/phorders3/service.php');
+    assert.equal(api.sessionToken, null);
+  });
+
+  it('accepts session token in constructor', () => {
+    const api = new PizzaHutAPI({ sessionToken: 'abc123' });
+    assert.equal(api.sessionToken, 'abc123');
+  });
+
+  it('has all expected methods', () => {
+    const api = new PizzaHutAPI();
+    const expected = [
+      'generateSession', 'searchStores', 'getMenu', 'getMenuSection',
+      'startOrder', 'addItemToOrder', 'submitOrder', 'getOrder',
+    ];
+    for (const m of expected) {
+      assert.equal(typeof api[m], 'function', `Missing method: ${m}`);
+    }
+  });
+
+  it('throws on startOrder without session', async () => {
+    const api = new PizzaHutAPI();
+    await assert.rejects(() => api.startOrder('12345'), /No session token/);
+  });
+
+  it('throws on addItemToOrder without session', async () => {
+    const api = new PizzaHutAPI();
+    await assert.rejects(() => api.addItemToOrder('12345', {}), /No session token/);
+  });
+
+  it('throws on submitOrder without session', async () => {
+    const api = new PizzaHutAPI();
+    await assert.rejects(() => api.submitOrder('12345', {}), /No session token/);
+  });
+
+  it('throws on getOrder without session', async () => {
+    const api = new PizzaHutAPI();
+    await assert.rejects(() => api.getOrder('12345'), /No session token/);
+  });
+});
+
 // ─── INTEGRATION TESTS (hit live APIs, run sparingly) ────────────────────────
 // Set RUN_INTEGRATION=1 to run these. Skipped by default.
 
@@ -383,6 +427,24 @@ integration('Taco Bell', () => {
     const menu = await api.getMenu();
     assert.ok(menu, 'Expected menu payload');
     console.log('Taco Bell menu keys:', Object.keys(menu));
+  });
+});
+
+integration('Pizza Hut', () => {
+  const api = new PizzaHutAPI();
+
+  it('searches stores by zip', async () => {
+    const result = await api.searchStores('V3A');
+    assert.ok(result, 'Expected store search result');
+    console.log('Pizza Hut search result:', JSON.stringify(result).slice(0, 200));
+  });
+
+  it('generates session and fetches menu', async () => {
+    const session = await api.generateSession({
+      street_address: '123 Main St', city: 'Langley', state: 'BC', zip: 'V3A1B2',
+    });
+    assert.ok(api.sessionToken || session, 'Expected session data');
+    console.log('Pizza Hut session:', JSON.stringify(session).slice(0, 200));
   });
 });
 
