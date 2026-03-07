@@ -6,6 +6,7 @@
  * Starbucks: store finder, menu lookup, card balance, rewards, ordering (needs API key intercept)
  * McDonald's: menu lookup (CA) — no auth needed
  * Chipotle: restaurant search, menu, ordering, pickup times, delivery estimates
+ * Taco Bell: location search, menu, cart/ordering, delivery estimates, promotions
  */
 
 // ─── DOMINOS ─────────────────────────────────────────────────────────────────
@@ -634,6 +635,142 @@ class ChipotleAPI {
   }
 }
 
+// ─── TACO BELL ───────────────────────────────────────────────────────────────
+
+class TacoBellAPI {
+  constructor() {
+    this.baseUrl = 'https://www.tacobell.com';
+  }
+
+  async _request(method, path, options = {}) {
+    const { params, body, headers = {} } = options;
+    const url = new URL(path, this.baseUrl);
+
+    if (params) {
+      for (const [key, value] of Object.entries(params)) {
+        if (value !== undefined && value !== null) url.searchParams.set(key, String(value));
+      }
+    }
+
+    const res = await fetch(url, {
+      method,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36',
+        ...headers,
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Taco Bell API ${res.status}: ${res.statusText} — ${url}`);
+    }
+
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
+  }
+
+  async searchLocations(latitude, longitude, radius = 50, pageSize = 20) {
+    return this._request('POST', '/api/v1/locations/search', {
+      body: { latitude, longitude, radius, pageSize, pageIndex: 0 },
+    });
+  }
+
+  async getLocation(locationId) {
+    return this._request('GET', `/api/v1/locations/${locationId}`);
+  }
+
+  async getLocationHours(locationId) {
+    return this._request('GET', `/api/v1/locations/${locationId}/hours`);
+  }
+
+  async getLocationMenu(locationId) {
+    return this._request('GET', `/api/v1/locations/${locationId}/menu`);
+  }
+
+  async getMenu(locationId = null) {
+    return this._request('GET', '/api/v1/menu', {
+      params: locationId ? { locationId } : undefined,
+    });
+  }
+
+  async getMenuItems(filters = {}) {
+    return this._request('GET', '/api/v1/menu/items', { params: filters });
+  }
+
+  async getMenuItem(itemId) {
+    return this._request('GET', `/api/v1/menu/items/${itemId}`);
+  }
+
+  async createCart(locationId) {
+    return this._request('POST', '/api/v1/cart', {
+      body: { locationId, orderSource: 'WebV2' },
+    });
+  }
+
+  async getCart(cartId) {
+    return this._request('GET', `/api/v1/cart/${cartId}`);
+  }
+
+  async addItemToCart(cartId, itemData, etag) {
+    return this._request('POST', `/api/v1/cart/${cartId}/items`, {
+      body: itemData,
+      headers: { 'If-Match': etag },
+    });
+  }
+
+  async updateCartItem(cartId, itemId, updateData, etag) {
+    return this._request('PUT', `/api/v1/cart/${cartId}/items/${itemId}`, {
+      body: updateData,
+      headers: { 'If-Match': etag },
+    });
+  }
+
+  async removeCartItem(cartId, itemId, etag) {
+    return this._request('DELETE', `/api/v1/cart/${cartId}/items/${itemId}`, {
+      headers: { 'If-Match': etag },
+    });
+  }
+
+  async applyPromoCode(cartId, promoCode, etag) {
+    return this._request('POST', `/api/v1/cart/${cartId}/apply-promo`, {
+      body: { promoCode },
+      headers: { 'If-Match': etag },
+    });
+  }
+
+  async checkout(cartId, checkoutData, etag) {
+    return this._request('POST', '/api/v1/checkout', {
+      body: { cartId, ...checkoutData },
+      headers: { 'If-Match': etag },
+    });
+  }
+
+  async submitOrder(checkoutId, paymentData, etag) {
+    return this._request('POST', '/api/v1/orders', {
+      body: { checkoutId, ...paymentData },
+      headers: { 'If-Match': etag },
+    });
+  }
+
+  async getOrder(orderId) {
+    return this._request('GET', `/api/v1/orders/${orderId}`);
+  }
+
+  async getDeliveryEstimate(deliveryData) {
+    return this._request('POST', '/api/v1/delivery/estimate', {
+      body: deliveryData,
+    });
+  }
+
+  async getPromotions(locationId = null) {
+    return this._request('GET', '/api/v1/promotions', {
+      params: locationId ? { locationId } : undefined,
+    });
+  }
+}
+
 // ─── EXPORTS ─────────────────────────────────────────────────────────────────
 
 export {
@@ -646,4 +783,6 @@ export {
   McDonaldsAPI,
   // Chipotle
   ChipotleAPI,
+  // Taco Bell
+  TacoBellAPI,
 };

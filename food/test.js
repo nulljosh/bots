@@ -7,7 +7,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   ChipotleAPI, DominosAPI, DominosAuth, DominosItem, DominosMenu, DominosOrder,
-  DominosPayment, DominosTracker, McDonaldsAPI, StarbucksAPI, detectCardType,
+  DominosPayment, DominosTracker, McDonaldsAPI, StarbucksAPI, TacoBellAPI, detectCardType,
 } from './foodbot.js';
 
 // ─── UNIT TESTS (offline, no API calls) ─────────────────────────────────────
@@ -278,6 +278,27 @@ describe('McDonaldsAPI constructor', () => {
   });
 });
 
+describe('TacoBellAPI (offline)', () => {
+  it('constructs with correct baseUrl', () => {
+    const api = new TacoBellAPI();
+    assert.equal(api.baseUrl, 'https://www.tacobell.com');
+  });
+
+  it('has all expected methods', () => {
+    const api = new TacoBellAPI();
+    const expected = [
+      'searchLocations', 'getLocation', 'getLocationHours', 'getLocationMenu',
+      'getMenu', 'getMenuItems', 'getMenuItem',
+      'createCart', 'getCart', 'addItemToCart', 'updateCartItem', 'removeCartItem', 'applyPromoCode',
+      'checkout', 'submitOrder', 'getOrder',
+      'getDeliveryEstimate', 'getPromotions',
+    ];
+    for (const m of expected) {
+      assert.equal(typeof api[m], 'function', `Missing method: ${m}`);
+    }
+  });
+});
+
 // ─── INTEGRATION TESTS (hit live APIs, run sparingly) ────────────────────────
 // Set RUN_INTEGRATION=1 to run these. Skipped by default.
 
@@ -346,6 +367,22 @@ integration("McDonald's", () => {
   it('searches for Big Mac', async () => {
     const results = await mcd.search('Big Mac');
     console.log('Big Mac results:', results.slice(0, 3));
+  });
+});
+
+integration('Taco Bell', () => {
+  const api = new TacoBellAPI();
+
+  it('searches locations near lat/lng', async () => {
+    const result = await api.searchLocations(49.1, -122.8);
+    assert.ok(result, 'Expected location search result');
+    console.log('Taco Bell search result:', JSON.stringify(result).slice(0, 200));
+  });
+
+  it('fetches menu', async () => {
+    const menu = await api.getMenu();
+    assert.ok(menu, 'Expected menu payload');
+    console.log('Taco Bell menu keys:', Object.keys(menu));
   });
 });
 

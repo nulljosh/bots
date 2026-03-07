@@ -4,11 +4,12 @@ Merged from `dominos/` and `starbot/`. Single module: `foodbot.js`.
 
 ## Architecture
 
-Four classes, one file:
+Five classes, one file:
 - `DominosAPI` — full ordering pipeline (CA + US), OAuth for rewards/profile
 - `StarbucksAPI` — needs client_id/secret from mitmproxy intercept of Starbucks Android app
 - `McDonaldsAPI` — menu lookup only (CA), no auth, no ordering
 - `ChipotleAPI` — restaurant search, menu, ordering, pickup times, delivery estimates
+- `TacoBellAPI` — location search, menu, cart/ordering, delivery estimates, promotions
 
 ## Dominos Config
 - Store, address, phone, payment: loaded from .env (see .env.example)

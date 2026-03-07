@@ -1,6 +1,6 @@
 # Food: Integration Roadmap
 
-Current status: Dominos + Starbucks + McDonald's + Chipotle
+Current status: Dominos + Starbucks + McDonald's + Chipotle + Taco Bell
 
 ## Working
 
@@ -28,17 +28,13 @@ Current status: Dominos + Starbucks + McDonald's + Chipotle
 
 ### High Priority (Public APIs Available)
 
-1. **Chipotle**
-   - Menu API: https://www.chipotle.com/api/menu (may be public)
-   - Location API exists
-   - Order: Requires auth (feasible)
-   - ROI: High (popular, accessible)
+1. **Chipotle** -- DONE (v1.1.0)
+   - Restaurant search, menu, ordering, pickup times, delivery estimates
+   - Integrated into foodbot.js as ChipotleAPI
 
-2. **Taco Bell**
-   - Menu: https://www.tacobell.com/api/menu (may exist)
-   - Rewards program integration
-   - Order: Likely requires OAuth
-   - ROI: High
+2. **Taco Bell** -- DONE (v2.0.0)
+   - Location search, menu, cart/ordering, delivery estimates, promotions
+   - 18 methods, ported from src/tacobell.js to foodbot.js as TacoBellAPI
 
 3. **Subway**
    - Menu API likely exists
