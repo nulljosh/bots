@@ -8,6 +8,7 @@
  * Chipotle: restaurant search, menu, ordering, pickup times, delivery estimates
  * Taco Bell: location search, menu, cart/ordering, delivery estimates, promotions
  * Pizza Hut: store finder, menu, cart/ordering, session-based auth
+ * Firehouse Subs: store finder, menu lookup (RBI GraphQL gateway, no auth needed)
  */
 
 // ─── DOMINOS ─────────────────────────────────────────────────────────────────
@@ -876,6 +877,107 @@ class PizzaHutAPI {
   }
 }
 
+// ─── FIREHOUSE SUBS ──────────────────────────────────────────────────────────
+
+/**
+ * Firehouse Subs — RBI GraphQL gateway.
+ * Store search + menu lookup. No auth needed for public queries.
+ * Ordering requires Cognito auth (not implemented).
+ */
+class FirehouseSubsAPI {
+  constructor() {
+    this.gateway = 'https://use1-prod-fhs-gateway.rbictg.com/graphql';
+  }
+
+  async _graphql(query, variables = {}) {
+    const res = await fetch(this.gateway, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36',
+      },
+      body: JSON.stringify({ query, variables }),
+    });
+    if (!res.ok) throw new Error(`Firehouse Subs API ${res.status}: ${res.statusText}`);
+    const data = await res.json();
+    if (data.errors?.length) throw new Error(`Firehouse GraphQL: ${data.errors[0].message}`);
+    return data.data;
+  }
+
+  async searchStores(lat, lng, radius = 50000, serviceModes = ['EAT_IN']) {
+    const data = await this._graphql(`
+      query NearbyRestaurants($input: NearbyRestaurantsInput!) {
+        nearbyRestaurants(input: $input) {
+          nodes {
+            storeId
+            name
+            latitude
+            longitude
+            physicalAddress { address1 city stateProvince postalCode }
+          }
+        }
+      }
+    `, {
+      input: {
+        coordinates: { userLat: lat, userLng: lng, searchRadius: radius },
+        serviceModes,
+        radiusStrictMode: false,
+      },
+    });
+    return data?.nearbyRestaurants?.nodes || [];
+  }
+
+  async getRestaurant(storeId) {
+    const data = await this._graphql(`
+      query Restaurant($storeId: String!) {
+        restaurant(storeId: $storeId) {
+          storeId
+          name
+          latitude
+          longitude
+          status
+          physicalAddress { address1 city stateProvince postalCode }
+          operatingHours { isCurrentlyOpen hoursOfOperation { dayOfWeek open close } }
+        }
+      }
+    `, { storeId });
+    return data?.restaurant || null;
+  }
+
+  async getMenu(storeId) {
+    const data = await this._graphql(`
+      query MenuSections($storeId: String!) {
+        getMenuSectionsForRestaurant(storeId: $storeId) {
+          id
+          name
+          description
+          image { uri }
+          items { id name description image { uri } price calories }
+        }
+      }
+    `, { storeId });
+    return data?.getMenuSectionsForRestaurant || [];
+  }
+
+  async getMenuItem(storeId, itemId) {
+    const data = await this._graphql(`
+      query MenuItem($storeId: String!, $itemId: String!) {
+        getMenuItemForRestaurant(storeId: $storeId, itemId: $itemId) {
+          id
+          name
+          description
+          image { uri }
+          price
+          calories
+          options { id name type items { id name price calories } }
+        }
+      }
+    `, { storeId, itemId });
+    return data?.getMenuItemForRestaurant || null;
+  }
+}
+
 // ─── EXPORTS ─────────────────────────────────────────────────────────────────
 
 export {
@@ -892,4 +994,6 @@ export {
   TacoBellAPI,
   // Pizza Hut
   PizzaHutAPI,
+  // Firehouse Subs
+  FirehouseSubsAPI,
 };
