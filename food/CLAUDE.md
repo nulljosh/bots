@@ -1,54 +1,68 @@
 # food — Agent Notes
 
-Merged from `dominos/` and `starbot/`. Single module: `food.js`.
+Single module `food.js` — 8 chains, unified interface.
 
-## Architecture
+## Classes
 
-Seven classes, one file:
-- `DominosAPI` — full ordering pipeline (CA + US), OAuth for rewards/profile
-- `StarbucksAPI` — needs client_id/secret from mitmproxy intercept of Starbucks Android app
-- `McDonaldsAPI` — menu lookup only (CA), no auth, no ordering
-- `ChipotleAPI` — restaurant search, menu, ordering, pickup times, delivery estimates
-- `TacoBellAPI` — location search, menu, cart/ordering, delivery estimates, promotions
-- `PizzaHutAPI` — store finder, menu, cart/ordering, session-based auth (quikorder API)
-- `FirehouseSubsAPI` — store search + menu (RBI GraphQL gateway, no auth for public queries, ordering needs Cognito). Menu returns item IDs with price/calories but no names (Entity type lacks name field; app resolves names from Sanity CMS). Introspection disabled.
+| Class | Type | Notes |
+|-------|------|-------|
+| `DominosAPI` | Live ordering | Full CA+US pipeline, OAuth, loyalty, tracking |
+| `StarbucksAPI` | Partial | Store search works; ordering blocked on API creds |
+| `McDonaldsAPI` | Static menu | Live endpoint works; static fallback if dead |
+| `ChipotleAPI` | Live ordering | Restaurant search, menu, ordering, delivery |
+| `TacoBellAPI` | Live ordering | Location search, menu, cart, delivery, promos |
+| `PizzaHutAPI` | Live ordering | Zip-based store search, menu, cart (quikorder API) |
+| `FirehouseSubsAPI` | Static menu | Store search via RBI GraphQL (US only); ordering needs Cognito auth |
+| `DairyQueenAPI` | Static menu | Store search via DQ locator API; ordering not available |
+
+## Unified Interface (all classes)
+
+```js
+searchStores(lat, lng, radius)  // throws "Store search not available" if no public API
+getMenu()                        // returns MENU object (static or live)
+searchMenu(query)                // fuzzy search, returns [{name, id, category, score}]
+getPrice(itemId, size)           // 'small'|'medium'|'large', returns number or null
+```
+
+## Shared Helpers (top of food.js)
+
+- `fuzzySearchMenu(menu, query)` — token + substring scoring across all categories
+- `flattenMenuItems(menu)` — flattens category map to flat array
+- `readPrice(item, size)` — resolves price_size or price field
+- `fetchJSON(url, options)` — fetch wrapper with error handling
 
 ## Dominos Config
-- Store, address, phone, payment: loaded from .env (see .env.example)
-- Usual: 14SCREEN + P (pepperoni) + K (bacon) + X (sauce) + C (cheese), GARBUTTER (garlic dip)
 
-## Ordering Flow (Dominos)
-1. `api.stores.find(address)` → get StoreID
-2. `api.createOrder().setAddress().setStore().setCustomer().addProduct()`
+- Store, address, phone, payment: from `.env` (see `.env.example`)
+- Usual: `14SCREEN + P (pepperoni) + K (bacon) + X (sauce) + C (cheese), GARBUTTER`
+
+## Dominos Ordering Flow
+
+1. `DominosStoreFinder.find(address)` → StoreID
+2. `DominosOrder.setAddress().setStore().setCustomer().addProduct()`
 3. `order.validate()` → confirm no errors
 4. `order.price()` → get total
 5. Confirm with Josh, then `order.setPayment().place()`
 
-## McDonald's Notes
-- Uses unofficial mcdonalds.com/ca JSON endpoints
-- Categories endpoint sometimes returns empty — retry once
-- No ordering API. Don't try to implement it without a stable endpoint.
+## Starbucks
 
-## Starbucks Notes
-- Status: blocked on API credentials
-- Need: client_id + client_secret from Starbucks Android app intercept (mitmproxy)
-- storesByAddress() works without auth (public BFF endpoint)
-- All open-source API wrappers are dead (2017 era), keys rotated, cert pinning active
+- Blocked on client_id/secret (need mitmproxy intercept of Android app)
+- Store search works without auth
+- Roadmap: Puppeteer balance scrape → auto-reload → Opticon financeData.js sync
 
-### Starbucks Roadmap
-- [ ] Balance check via Puppeteer scrape of app.starbucks.com (no API creds needed)
-- [ ] Enable auto-reload in Starbucks app (manual, no code needed)
-- [ ] Update Opticon financeData.js balance from scrape result
-- [ ] (stretch) Extract fresh client_id/secret from APK via apktool if ordering is needed
+## Firehouse Subs
 
-## OpenClaw Skill
-CLI wrapper: `~/.openclaw/workspace/skills/dominos/scripts/order.js`
-Config: `~/.openclaw/workspace/skills/dominos/config.json`
+- RBI GraphQL gateway: `use1-prod-fhs-gateway.rbictg.com/graphql`
+- Store search works (US only — no Canadian stores)
+- Menu: static (Sanity CMS names not accessible without Cognito auth)
+- Ordering: needs `us-east-1_1GhLoww6S` Cognito pool, client `v8lmpra3vj5o89chbefeitsun`
 
-Commands: usual, place, menu, track, stores, loyalty, coupons, store-deals, profile
+## Health Check
 
-Delivery: "Leave at the door. Do not knock.", tip $0, CustomerID from OAuth.
-Store coupons via menu endpoint (the /customer/coupons and /customer/deals endpoints 403 on CA).
+```bash
+node health.js  # All 7 tests should pass green
+```
 
 ## Testing
-Run sparingly — hits live APIs. Don't spam order.price() or place() in testing.
+
+Run sparingly — hits live APIs. Never spam `order.price()` or `place()`.

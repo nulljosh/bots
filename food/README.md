@@ -1,39 +1,55 @@
 # food
 
-Unified food ordering API. Six services in one module (`food.js`).
+Unified food API — 8 chains, one module (`food.js`).
 
 ## Services
 
-| Service | Status | Features |
-|---------|--------|----------|
-| **Dominos** | Live | Full ordering pipeline, OAuth, loyalty, store deals, tracking |
-| **Starbucks** | Partial | Store finder only. Ordering blocked on API credentials |
-| **McDonald's** | Partial | Menu + nutrition lookup (CA). No ordering |
-| **Chipotle** | Live | Restaurant search, menu, ordering, pickup times, delivery estimates |
-| **Taco Bell** | Live | Location search, menu, cart/ordering, delivery estimates, promotions |
-| **Pizza Hut** | Live | Store finder, menu, cart/ordering, session-based auth |
+| Service | Status | Store Search | Menu | Ordering |
+|---------|--------|-------------|------|---------|
+| **Dominos** | Live | ✅ | ✅ | ✅ Full pipeline |
+| **Starbucks** | Partial | ✅ | ✅ | ❌ Needs API creds |
+| **McDonald's** | Live | ❌ | ✅ Static | ❌ |
+| **Chipotle** | Live | ✅ | ✅ | ✅ |
+| **Taco Bell** | Live | ✅ | ✅ | ✅ |
+| **Pizza Hut** | Live | ✅ (zip) | ✅ | ✅ |
+| **Firehouse Subs** | Partial | ✅ US only | ✅ Static | ❌ Needs Cognito auth |
+| **Dairy Queen** | Partial | ✅ | ✅ Static | ❌ |
+
+## Unified Interface
+
+Every class implements:
+```js
+searchStores(lat, lng, radius)  // live API or throws if unavailable
+getMenu()                        // live or static
+searchMenu(query)                // fuzzy search across all categories
+getPrice(itemId, size)           // returns number or null
+```
+
+## Health Check
+
+```bash
+node health.js
+```
 
 ## OpenClaw Integration
 
 CLI wrapper: `~/.openclaw/workspace/skills/dominos/scripts/order.js`
 
 ```bash
-node order.js usual        # Price the usual order
-node order.js place        # Place order (stdin JSON)
-node order.js menu <query> # Search menu
-node order.js track        # Track delivery
-node order.js stores <addr># Find nearby stores
-node order.js loyalty      # Check points
-node order.js coupons      # Loyalty + store coupons
-node order.js store-deals  # Store menu deals
-node order.js profile      # Account info
+node order.js usual         # Price the usual order
+node order.js place         # Place order
+node order.js menu <query>  # Search menu
+node order.js track         # Track delivery
+node order.js stores <addr> # Find nearby stores
+node order.js loyalty       # Check points
+node order.js coupons       # Coupons
 ```
 
 ## Dominos Defaults
 
 - Store: 10090 (Langley)
 - Usual: Large hand tossed, pepperoni + bacon, 2x garlic dip
-- Delivery: "Leave at the door. Do not knock.", tip $0
+- Delivery: leave at door, tip $0
 - Payment: Mastercard from `~/.openclaw/.secure/payment.env`
 
 ## License
