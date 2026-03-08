@@ -49,16 +49,62 @@ async function dominosRequest(url, options = {}) {
   return res.json();
 }
 
+function flattenMenuItems(menu) {
+  const groups = Object.values(menu || {});
+  return groups.flatMap(group => (Array.isArray(group) ? group : []));
+}
+
+function fuzzySearchMenu(menu, query) {
+  const q = String(query || '').toLowerCase().trim();
+  if (!q) return [];
+  return flattenMenuItems(menu).filter(item => {
+    const haystack = `${item.name || ''} ${item.description || ''}`.toLowerCase();
+    return haystack.includes(q);
+  });
+}
+
+function readPrice(item, size = 'medium') {
+  if (!item) return null;
+  const key = `price_${String(size || '').toLowerCase()}`;
+  return item[key] ?? item.price ?? item.price_regular ?? null;
+}
+
 class DominosStoreFinder {
   constructor(baseUrl, lang) { this.baseUrl = baseUrl; this.lang = lang; }
 
-  async find(address, type = 'Delivery') {
-    let street, city;
-    if (typeof address === 'object') { street = address.street; city = address.city; }
-    else { const parts = address.split(',').map(s => s.trim()); street = parts[0] || ''; city = parts.slice(1).join(', '); }
-    const url = `${this.baseUrl}/power/store-locator?s=${encodeURIComponent(street)}&c=${encodeURIComponent(city)}&type=${type}`;
-    const data = await dominosRequest(url);
-    return data.Stores || [];
+  async find(input, type = 'Delivery') {
+    const params = new URLSearchParams();
+    let resolvedType = type;
+
+    if (typeof input === 'object' && input !== null) {
+      if (input.type) resolvedType = input.type;
+      if (input.s || input.street) params.set('s', String(input.s || input.street));
+      if (input.c || input.city || input.address) params.set('c', String(input.c || input.city || input.address));
+      if (input.lat !== undefined && input.lng !== undefined) {
+        params.set('lat', String(input.lat));
+        params.set('lng', String(input.lng));
+      }
+    } else {
+      const address = String(input || '').trim();
+      if (address) {
+        const parts = address.split(',').map(s => s.trim()).filter(Boolean);
+        params.set('s', parts[0] || address);
+        if (parts.length > 1) params.set('c', parts.slice(1).join(', '));
+      }
+    }
+
+    if (!params.has('s') && !params.has('c') && !(params.has('lat') && params.has('lng'))) {
+      throw new Error('Address or lat/lng required');
+    }
+
+    params.set('type', resolvedType);
+    const url = `${this.baseUrl}/power/store-locator?${params.toString()}`;
+    try {
+      const data = await dominosRequest(url);
+      return data?.Stores || [];
+    } catch {
+      return [];
+    }
   }
 
   async profile(storeId) { return dominosRequest(`${this.baseUrl}/power/store/${storeId}/profile`); }
@@ -326,10 +372,12 @@ class DominosAuth {
 }
 
 class DominosAPI {
-  constructor({ region = 'ca', email, password, clientId, clientIds, scopes } = {}) {
+  constructor({ region = 'ca', email, password, clientId, clientIds, scopes, storeId = null } = {}) {
     const cfg = DOMINOS_REGIONS[region];
     if (!cfg) throw new Error(`Unknown region: ${region}`);
     this.region = region; this.config = cfg;
+    this.defaultStoreId = storeId;
+    this._lastMenu = null;
     this.stores = new DominosStoreFinder(cfg.order, cfg.lang);
     this.menu = new DominosMenu(cfg.order, cfg.lang);
     this.tracker = new DominosTracker(cfg.tracker);
@@ -370,6 +418,32 @@ class DominosAPI {
     if (!this.auth) throw new Error('No credentials provided. Pass email+password to DominosAPI().');
     return this.auth.deals();
   }
+
+  async find(input, type = 'Delivery') { return this.stores.find(input, type); }
+
+  async searchStores(lat, lng, radius = 5) {
+    void radius;
+    return this.find({ lat, lng, type: 'Delivery' });
+  }
+
+  async getMenu(storeId = this.defaultStoreId) {
+    if (!storeId) throw new Error('Store ID required');
+    const menu = await this.menu.get(storeId);
+    this._lastMenu = menu;
+    return menu;
+  }
+
+  searchMenu(query) {
+    if (!this._lastMenu) return [];
+    return DominosMenu.searchItems(this._lastMenu, query);
+  }
+
+  getPrice(itemId, size = 'medium') {
+    if (!this._lastMenu?.Products) return null;
+    const item = this._lastMenu.Products[itemId];
+    if (!item) return null;
+    return item.Price ?? item?.Variants?.[size]?.Price ?? null;
+  }
 }
 
 // ─── STARBUCKS ────────────────────────────────────────────────────────────────
@@ -378,7 +452,26 @@ const SBUX_BASE = 'https://openapi.starbucks.com/v1';
 const SBUX_UA = 'Starbucks Android 6.48';
 
 class StarbucksAPI {
-  constructor() { this.accessToken = null; this.clientId = null; this.clientSecret = null; }
+  constructor() {
+    this.accessToken = null; this.clientId = null; this.clientSecret = null;
+    this.MENU = {
+      espresso: [
+        { id: 'caffe_latte', name: 'Caffe Latte', price_small: 4.45, price_medium: 4.95, price_large: 5.45 },
+        { id: 'caramel_macchiato', name: 'Caramel Macchiato', price_small: 5.25, price_medium: 5.75, price_large: 6.25 },
+      ],
+      brewed: [
+        { id: 'pike_place', name: 'Pike Place Roast', price_small: 2.95, price_medium: 3.25, price_large: 3.55 },
+        { id: 'cold_brew', name: 'Cold Brew', price_small: 4.25, price_medium: 4.75, price_large: 5.25 },
+      ],
+      refreshers: [
+        { id: 'strawberry_acai_refresher', name: 'Strawberry Acai Refresher', price_small: 4.95, price_medium: 5.45, price_large: 5.95 },
+      ],
+      food: [
+        { id: 'bacon_gouda', name: 'Bacon, Gouda & Egg Sandwich', price: 5.75 },
+        { id: 'butter_croissant', name: 'Butter Croissant', price: 4.25 },
+      ],
+    };
+  }
 
   setCredentials(clientId, clientSecret) { this.clientId = clientId; this.clientSecret = clientSecret; return this; }
   setToken(token) { this.accessToken = token; return this; }
@@ -447,6 +540,25 @@ class StarbucksAPI {
   async rewards() { return this._authedRequest('GET', 'me/rewards', { market: 'CA', locale: 'en-CA' }); }
 
   _signature() { return Buffer.from(`${this.clientId}:${Date.now()}`).toString('base64'); }
+
+  async searchStores(lat, lng, radius = 5) {
+    const url = new URL('https://www.starbucks.ca/bff/locations');
+    url.searchParams.set('lat', String(lat));
+    url.searchParams.set('lng', String(lng));
+    url.searchParams.set('mop', 'true');
+    url.searchParams.set('radius', String(radius));
+    const res = await fetch(url, { headers: { 'User-Agent': SBUX_UA, 'Accept': 'application/json' } });
+    if (!res.ok) throw new Error(`Store locator failed: ${res.status}`);
+    const data = await res.json();
+    return (data.stores || []).map(s => ({ id: s.id, name: s.name, storeNumber: s.storeNumber, address: s.address, distance: s.distance }));
+  }
+
+  getMenu() { return this.MENU; }
+  searchMenu(query) { return fuzzySearchMenu(this.MENU, query); }
+  getPrice(itemId, size = 'medium') {
+    const item = flattenMenuItems(this.MENU).find(i => i.id === itemId);
+    return readPrice(item, size);
+  }
 }
 
 // ─── MCDONALD'S ──────────────────────────────────────────────────────────────
@@ -462,6 +574,33 @@ class McDonaldsAPI {
     this.language = language;
     const lang = `${language}-${market.toLowerCase()}`;
     this.apiUrl = `https://www.mcdonalds.com/${market.toLowerCase()}/${lang}/eat/nutritioninfo.json`;
+    this.menuEndpoints = [
+      this.apiUrl,
+      'https://cache.mcdonalds.com/api/v1/menu',
+      'https://www.mcdonalds.com/us/en-us/services/routeservice.html',
+    ];
+    this.STATIC_MENU = {
+      burgers: [
+        { id: 'big_mac', name: 'Big Mac', price: 6.49 },
+        { id: 'quarter_pounder_cheese', name: 'Quarter Pounder with Cheese', price: 6.89 },
+        { id: 'mcdouble', name: 'McDouble', price: 3.39 },
+        { id: 'filet_o_fish', name: 'Filet-O-Fish', price: 5.99 },
+        { id: 'mcchicken', name: 'McChicken', price: 3.99 },
+      ],
+      chicken: [
+        { id: 'mcnuggets_6pc', name: 'Chicken McNuggets (6 pc)', price: 4.69 },
+        { id: 'mcnuggets_10pc', name: 'Chicken McNuggets (10 pc)', price: 6.99 },
+        { id: 'mcnuggets_20pc', name: 'Chicken McNuggets (20 pc)', price: 11.99 },
+      ],
+      sides: [
+        { id: 'fries', name: 'World Famous Fries', price_small: 2.89, price_medium: 3.59, price_large: 4.19 },
+        { id: 'apple_pie', name: 'Baked Apple Pie', price: 1.99 },
+      ],
+      desserts: [
+        { id: 'mcflurry_oreo', name: 'McFlurry with OREO Cookies', price_small: 4.49, price_medium: 5.19, price_large: 5.89 },
+      ],
+    };
+    this._liveMenu = null;
   }
 
   async _request(url) {
@@ -475,8 +614,51 @@ class McDonaldsAPI {
     return res.json();
   }
 
+  async _loadLiveMenu() {
+    for (const endpoint of this.menuEndpoints) {
+      try {
+        const data = await this._request(endpoint);
+        if (data?.pncategories?.category?.length) {
+          this._liveMenu = data;
+          return data;
+        }
+      } catch {
+        // Endpoint unavailable; continue.
+      }
+    }
+    return null;
+  }
+
+  async searchStores() { throw new Error('Store search not available'); }
+
+  async getMenu() {
+    const live = this._liveMenu || await this._loadLiveMenu();
+    if (!live) return this.STATIC_MENU;
+
+    const grouped = {};
+    for (const cat of live?.pncategories?.category || []) {
+      const key = String(cat.item_name || 'other').toLowerCase().replace(/[^a-z0-9]+/g, '_');
+      grouped[key] = (cat.menu_item || []).map(item => ({
+        id: item.field_item_serving_id || item.item_name?.toLowerCase().replace(/[^a-z0-9]+/g, '_'),
+        name: item.item_name,
+        description: item.item_description,
+        calories: item.calories,
+      }));
+    }
+    return Object.keys(grouped).length ? grouped : this.STATIC_MENU;
+  }
+
+  async searchMenu(query) {
+    return fuzzySearchMenu(await this.getMenu(), query);
+  }
+
+  async getPrice(itemId, size = 'medium') {
+    const item = flattenMenuItems(await this.getMenu()).find(i => i.id === itemId);
+    return readPrice(item, size);
+  }
+
   async categories() {
-    const data = await this._request(this.apiUrl);
+    const data = this._liveMenu || await this._loadLiveMenu();
     const cats = data?.pncategories?.category || [];
     return cats.map(c => ({ id: c.field_category_id, name: c.item_name, image: c.thumbnail }));
   }
@@ -518,7 +700,24 @@ class McDonaldsAPI {
 
 class ChipotleAPI {
   constructor() {
-    this.baseUrl = 'https://www.chipotle.com';
+    this.baseUrl = 'https://services.chipotle.com';
+    this.webOrigin = 'https://www.chipotle.com';
+    this.STATIC_MENU = {
+      entrees: [
+        { id: 'burrito', name: 'Burrito', price: 10.85 },
+        { id: 'bowl', name: 'Bowl', price: 10.85 },
+        { id: 'quesadilla', name: 'Quesadilla', price: 11.45 },
+      ],
+      sides: [
+        { id: 'chips', name: 'Chips', price: 2.25 },
+        { id: 'chips_guac', name: 'Chips & Guacamole', price: 5.2 },
+      ],
+      drinks: [
+        { id: 'bottled_water', name: 'Bottled Water', price: 2.6 },
+        { id: 'tractor_berry', name: 'Tractor Organic Berry Agua Fresca', price: 3.4 },
+      ],
+    };
+    this._lastMenu = null;
   }
 
   async _request(method, path, options = {}) {
@@ -537,6 +736,9 @@ class ChipotleAPI {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Origin': this.webOrigin,
+        'Referer': `${this.webOrigin}/`,
         ...headers,
       },
       body: body === undefined ? undefined : JSON.stringify(body),
@@ -551,32 +753,59 @@ class ChipotleAPI {
   }
 
   async searchRestaurants(latitude, longitude, radius = 80647) {
-    return this._request('POST', '/restaurant/v3/restaurant', {
-      body: {
-        latitude,
-        longitude,
-        radius,
-        restaurantStatuses: ['OPEN', 'LAB'],
-        conceptIds: ['CMG'],
-        orderBy: 'distance',
-        orderByDescending: false,
-        pageSize: 10,
-        pageIndex: 0,
-        embeds: {
-          addressTypes: ['MAIN'],
-          realHours: true,
-          directions: true,
-          onlineOrdering: true,
-          timezone: true,
-          experience: true,
-          sustainability: true,
-        },
+    const body = {
+      latitude,
+      longitude,
+      radius,
+      restaurantStatuses: ['OPEN', 'LAB'],
+      conceptIds: ['CMG'],
+      orderBy: 'distance',
+      orderByDescending: false,
+      pageSize: 10,
+      pageIndex: 0,
+      embeds: {
+        addressTypes: ['MAIN'],
+        realHours: true,
+        directions: true,
+        onlineOrdering: true,
+        timezone: true,
+        experience: true,
+        sustainability: true,
       },
-    });
+    };
+    try {
+      return await this._request('POST', '/restaurant/v3/restaurant', { body });
+    } catch (primaryError) {
+      try {
+        const fallback = await fetch(`${this.webOrigin}/restaurant/v3/restaurant`, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Origin': this.webOrigin,
+            'Referer': `${this.webOrigin}/`,
+          },
+          body: JSON.stringify(body),
+        });
+        if (!fallback.ok) throw new Error(`Chipotle API ${fallback.status}: ${fallback.statusText}`);
+        return await fallback.json();
+      } catch {
+        throw primaryError;
+      }
+    }
   }
 
-  async getMenu(storeId) {
-    return this._request('GET', `/menuinnovation/v1/restaurants/${storeId}/onlinemenus/compressed`);
+  async getMenu(storeId = null) {
+    if (!storeId) return this.STATIC_MENU;
+    try {
+      const menu = await this._request('GET', `/menuinnovation/v1/restaurants/${storeId}/onlinemenus/compressed`);
+      this._lastMenu = menu;
+      return menu;
+    } catch {
+      return this.STATIC_MENU;
+    }
   }
 
   async getRestaurant(restaurantId, embeds = ['addresses', 'realHours', 'experience', 'onlineOrdering', 'sustainability']) {
@@ -635,6 +864,25 @@ class ChipotleAPI {
       body: deliveryData,
     });
   }
+
+  async searchStores(lat, lng, radius = 80647) {
+    try {
+      const response = await this.searchRestaurants(lat, lng, radius);
+      return response?.data || response?.restaurants || response || [];
+    } catch {
+      return [];
+    }
+  }
+
+  async searchMenu(query) {
+    return fuzzySearchMenu(await this.getMenu(), query);
+  }
+
+  async getPrice(itemId, size = 'medium') {
+    const menu = await this.getMenu();
+    const item = flattenMenuItems(menu).find(i => i.id === itemId);
+    return readPrice(item, size);
+  }
 }
 
 // ─── TACO BELL ───────────────────────────────────────────────────────────────
@@ -642,6 +890,23 @@ class ChipotleAPI {
 class TacoBellAPI {
   constructor() {
     this.baseUrl = 'https://www.tacobell.com';
+    this.STATIC_MENU = {
+      tacos: [
+        { id: 'crunchy_taco', name: 'Crunchy Taco', price: 2.29 },
+        { id: 'soft_taco', name: 'Soft Taco', price: 2.49 },
+      ],
+      burritos: [
+        { id: 'beefy_5_layer_burrito', name: 'Beefy 5-Layer Burrito', price: 4.29 },
+        { id: 'bean_burrito', name: 'Bean Burrito', price: 2.99 },
+      ],
+      sides: [
+        { id: 'nacho_fries', name: 'Nacho Fries', price_small: 2.99, price_medium: 3.99, price_large: 4.99 },
+        { id: 'cinnamon_twists', name: 'Cinnamon Twists', price: 1.99 },
+      ],
+      drinks: [
+        { id: 'baja_blast', name: 'MTN DEW Baja Blast', price_small: 2.29, price_medium: 2.69, price_large: 2.99 },
+      ],
+    };
   }
 
   async _request(method, path, options = {}) {
@@ -692,9 +957,13 @@ class TacoBellAPI {
   }
 
   async getMenu(locationId = null) {
-    return this._request('GET', '/api/v1/menu', {
-      params: locationId ? { locationId } : undefined,
-    });
+    try {
+      return await this._request('GET', '/api/v1/menu', {
+        params: locationId ? { locationId } : undefined,
+      });
+    } catch {
+      return this.STATIC_MENU;
+    }
   }
 
   async getMenuItems(filters = {}) {
@@ -771,6 +1040,20 @@ class TacoBellAPI {
       params: locationId ? { locationId } : undefined,
     });
   }
+
+  async searchStores(lat, lng, radius = 50) {
+    const result = await this.searchLocations(lat, lng, radius);
+    return result?.locations || result?.data || result || [];
+  }
+
+  async searchMenu(query) {
+    return fuzzySearchMenu(await this.getMenu(), query);
+  }
+
+  async getPrice(itemId, size = 'medium') {
+    const item = flattenMenuItems(await this.getMenu()).find(i => i.id === itemId);
+    return readPrice(item, size);
+  }
 }
 
 // ─── PIZZA HUT ───────────────────────────────────────────────────────────────
@@ -781,6 +1064,19 @@ class PizzaHutAPI {
     this.sessionToken = sessionToken;
     this.accountID = 'phimc2api';
     this.accountPW = 'fs112358';
+    this.STATIC_MENU = {
+      pizzas: [
+        { id: 'pepperoni_lovers', name: "Pepperoni Lover's", price_medium: 14.99, price_large: 18.99 },
+        { id: 'supreme', name: 'Supreme', price_medium: 15.99, price_large: 19.99 },
+      ],
+      sides: [
+        { id: 'breadsticks', name: 'Breadsticks', price: 6.99 },
+        { id: 'wings_8pc', name: 'Traditional Wings (8 pc)', price: 12.99 },
+      ],
+      desserts: [
+        { id: 'cinnabon_mini_rolls', name: 'Cinnabon Mini Rolls', price: 7.99 },
+      ],
+    };
   }
 
   async _request(requestType, data = {}) {
@@ -824,11 +1120,18 @@ class PizzaHutAPI {
     return data;
   }
 
-  async searchStores(zip) {
+  async searchStoresByZip(zip) {
     return this._request('FindNearByAddress', { customer_zip: zip });
   }
 
-  async getMenu(unitID, occasion = 'D', section = 'category', subsection = 'APICAROUSEL') {
+  async searchStores(lat, lng, radius = 25) {
+    if (typeof lat === 'string' && lng === undefined) return this.searchStoresByZip(lat);
+    void radius;
+    throw new Error('Store search not available');
+  }
+
+  async getMenu(unitID = null, occasion = 'D', section = 'category', subsection = 'APICAROUSEL') {
+    if (!unitID) return this.STATIC_MENU;
     return this._request('GetMenuItems', { unitID, occasion, section, subsection });
   }
 
@@ -874,6 +1177,15 @@ class PizzaHutAPI {
       unitID,
       action: 'status',
     });
+  }
+
+  async searchMenu(query) {
+    return fuzzySearchMenu(await this.getMenu(), query);
+  }
+
+  async getPrice(itemId, size = 'medium') {
+    const item = flattenMenuItems(await this.getMenu()).find(i => i.id === itemId);
+    return readPrice(item, size);
   }
 }
 
