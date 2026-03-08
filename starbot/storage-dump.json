@@ -1,0 +1,27 @@
+{
+  "localStorage": {
+    "io_f604be51-ccf5-4d26-9cc2-3c44e1fdceb9": "4lCOoy+wowqSKc3aiF34smmAjHawGpGY/jgoulguhbM=",
+    "_uetvid_exp": "Fri, 02 Apr 2027 04:52:12 GMT",
+    "NRBA_SESSION": "{\"value\":\"6f73e5c1b0451926\",\"inactiveAt\":1772947334848,\"expiresAt\":1772959932344,\"updatedAt\":1772945558932,\"sessionReplayMode\":0,\"sessionReplaySentFirstChunk\":false,\"sessionTraceMode\":0,\"traceHarvestStarted\":false,\"loggingMode\":0,\"logApiMode\":0,\"serverTimeDiff\":-188,\"custom\":{},\"numOfResets\":0,\"consent\":false}",
+    "mprtcl-v4_0C9BECA0": "{'gs':{'ie':1|'dt':'us1-b96c10bf8d450e45a5f108932f193fc4'|'cgid':'a0b226c8-ec0c-4cc3-5637-1647b44a52b2'|'das':'65dc78dc-0abb-4ef8-6072-7684bc0858f7'|'csm':'WyItNTQ4MDk0NTYyODM1MTY0MTA1MiJd'|'sid':'6F1C3750-2AFC-48CF-9CF5-535F5A1AC1C5'|'les':1772945532332|'ssd':1772945532070|'ia':'eyIxNjAiOnsiY2xpZW50X2lkIjoiNTM0MDg2MTc2LjE3NzI5NDU1MzIifX0='}|'l':false|'-5480945628351641052':{'fst':1772945532327|'csd':'eyIxMDMiOjE3NzI5NDU1MzI4ODB9'}|'cu':'-5480945628351641052'}",
+    "_gcl_ls": "{\"schema\":\"gcl\",\"version\":1,\"gcl_ctr\":{\"value\":{\"value\":0,\"timeouts\":0,\"errors\":0,\"creationTimeMs\":1772945530656},\"expires\":1780721530656}}",
+    "_uetsid": "91f79c001aaa11f1a22903ea978c486d",
+    "FTzyeq12rr": "A__aycucAQAAdTa_iYUhlWha08cVbE3HmzX_4Llwtcu0_MqjCmpmLikSAT1yAbhB2Ai7pZhhwH9eCOfvosJeCA==",
+    "optimizely-vuid": "vuid_020cb029c1aa46a197185f24622",
+    "_uetsid_exp": "Mon, 09 Mar 2026 04:52:12 GMT",
+    "_uetvid": "91f7b3501aaa11f188fd5f0f390c1e6b",
+    "mprtcl-tos-0C9BECA0": "26865",
+    "l_FTzyeq12rr": "1772945529952931254840",
+    "_bcnctkn": "b75f70b1eb621e04d81968189666f07031c9",
+    "mprtcl-v4_0C9BECA0-id-cache": "",
+    "fp_f604be51-ccf5-4d26-9cc2-3c44e1fdceb9": "ACGCHdZs5s2dGxo0cq885M7dlboE1eWPScnS1dnH9oU="
+  },
+  "sessionStorage": {
+    "fontsLoaded": "true",
+    "_bcnPpid": "2556954496969320",
+    "_bcncsid": "74831f88-3c04-420c-8986-4f027e9a6fc4",
+    "_bcnbsid": "aedcd199b246d85958053d6560de350328bb",
+    "_bcnsts": "1772949130598",
+    "mprtcl-v4_0C9BECA0-events": ""
+  }
+}
