@@ -887,6 +887,39 @@ class PizzaHutAPI {
 class FirehouseSubsAPI {
   constructor() {
     this.gateway = 'https://use1-prod-fhs-gateway.rbictg.com/graphql';
+    // Static menu - FHS menu is stable; names not available via public RBI GraphQL API
+    this.MENU = {
+      hot_subs: [
+        { id: 'engineer', name: 'Engineer', description: 'Smoked turkey breast, Virginia honey ham, melted provolone', price_small: 7.49, price_medium: 9.49, price_large: 11.49 },
+        { id: 'hook_ladder', name: 'Hook & Ladder', description: 'Smoked turkey breast, Virginia honey ham, melted provolone', price_small: 7.49, price_medium: 9.49, price_large: 11.49 },
+        { id: 'smokehouse_beef_cheddar_brisket', name: 'Smokehouse Beef & Cheddar Brisket', description: 'Beef brisket, cheddar cheese sauce, crispy onion straws', price_small: 8.49, price_medium: 10.99, price_large: 13.49 },
+        { id: 'italian', name: 'Italian', description: 'Genoa salami, pepperoni, ham, melted provolone', price_small: 7.49, price_medium: 9.49, price_large: 11.49 },
+        { id: 'new_york_steamer', name: 'New York Steamer', description: 'Pastrami, melted provolone', price_small: 8.49, price_medium: 10.49, price_large: 12.99 },
+        { id: 'firehouse_meatball', name: 'Firehouse Meatball', description: 'Meatballs, marinara, melted provolone', price_small: 7.49, price_medium: 9.49, price_large: 11.49 },
+        { id: 'turkey_bacon_ranch', name: 'Turkey Bacon Ranch', description: 'Smoked turkey breast, bacon, melted provolone, ranch', price_small: 7.99, price_medium: 9.99, price_large: 12.49 },
+        { id: 'club_on_a_sub', name: 'Club on a Sub', description: 'Smoked turkey breast, Virginia honey ham, bacon, melted provolone', price_small: 8.49, price_medium: 10.49, price_large: 12.99 },
+        { id: 'beef_cheese', name: 'Beef & Cheese', description: 'USDA choice beef, melted provolone', price_small: 8.49, price_medium: 10.49, price_large: 12.99 },
+        { id: 'steak_cheese_sub', name: 'Steak & Cheese Sub', description: 'Grilled steak, sautéed peppers & onions, melted provolone', price_small: 8.49, price_medium: 10.49, price_large: 12.99 },
+        { id: 'chicken_ranch', name: 'Chicken Ranch', description: 'Chicken, bacon, melted provolone, ranch', price_small: 7.99, price_medium: 9.99, price_large: 12.49 },
+        { id: 'brisket_cheddar', name: 'Brisket & Cheddar', description: 'Slow-smoked brisket, cheddar sauce', price_small: 8.49, price_medium: 10.99, price_large: 13.49 },
+      ],
+      specialty_subs: [
+        { id: 'firehouse_hero', name: 'Firehouse Hero', description: 'Smoked turkey breast, Virginia honey ham, Genoa salami, pepperoni, melted provolone', price_medium: 10.49, price_large: 12.99 },
+        { id: 'veggie', name: 'Veggie', description: 'Provolone, pepperoncini, tomatoes, banana peppers, olives, cucumbers', price_small: 6.99, price_medium: 8.99, price_large: 10.99 },
+        { id: 'chicken_fillet', name: 'Chicken Fillet', description: 'Breaded chicken fillet, melted provolone', price_small: 7.99, price_medium: 9.99, price_large: 12.49 },
+      ],
+      kids_meals: [
+        { id: 'kids_turkey', name: "Kids' Turkey", price: 5.99 },
+        { id: 'kids_ham', name: "Kids' Ham", price: 5.99 },
+        { id: 'kids_pbj', name: "Kids' PB&J", price: 5.99 },
+      ],
+      sides: [
+        { id: 'chips', name: 'Chips', price: 1.99 },
+        { id: 'cookie', name: 'Cookie', price: 1.49 },
+        { id: 'pickle', name: 'Pickle', price: 0.99 },
+        { id: 'fountain_drink', name: 'Fountain Drink', price: 2.49 },
+      ],
+    };
   }
 
   async _graphql(query, variables = {}) {
@@ -905,6 +938,10 @@ class FirehouseSubsAPI {
     return data.data;
   }
 
+  /**
+   * Search nearby Firehouse Subs locations.
+   * Note: FHS is US-only. Canadian coords return empty results.
+   */
   async searchStores(lat, lng, radius = 50000, serviceModes = ['EAT_IN']) {
     const data = await this._graphql(`
       query NearbyRestaurants($input: NearbyRestaurantsInput!) {
@@ -928,28 +965,39 @@ class FirehouseSubsAPI {
     return data?.nearbyRestaurants?.nodes || [];
   }
 
-  async getRestaurant(storeId) {
-    const data = await this._graphql(`
-      query Restaurant($storeId: String!) {
-        restaurant(storeId: $storeId) {
-          storeId
-        }
-      }
-    `, { storeId });
-    return data?.restaurant || null;
+  /** Get full static menu. */
+  getMenu() {
+    return this.MENU;
   }
 
-  async getMenu(storeId, region = 'US') {
-    const data = await this._graphql(`
-      query StoreMenu($storeId: ID!, $region: String!) {
-        storeMenu(storeId: $storeId, region: $region, channel: whitelabel) {
-          id
-          price { default min max }
-          calories { default min max }
+  /**
+   * Search menu items by name or description.
+   * @param {string} query
+   */
+  searchMenu(query) {
+    const q = query.toLowerCase();
+    const results = [];
+    for (const [category, items] of Object.entries(this.MENU)) {
+      for (const item of items) {
+        if (item.name.toLowerCase().includes(q) || (item.description && item.description.toLowerCase().includes(q))) {
+          results.push({ ...item, category });
         }
       }
-    `, { storeId, region });
-    return data?.storeMenu || [];
+    }
+    return results;
+  }
+
+  /**
+   * Get price for an item by size.
+   * @param {string} itemId
+   * @param {'small'|'medium'|'large'} size
+   */
+  getPrice(itemId, size = 'medium') {
+    for (const items of Object.values(this.MENU)) {
+      const item = items.find(i => i.id === itemId);
+      if (item) return item[`price_${size}`] || item.price || null;
+    }
+    return null;
   }
 }
 
