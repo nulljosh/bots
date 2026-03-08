@@ -32,3 +32,9 @@ bots/
 ├── index.html    (GitHub Pages landing)
 ├── README.md
 └── CLAUDE.md
+
+## Quick Commands
+- `./scripts/simplify.sh`
+- `./scripts/monetize.sh . --write`
+- `./scripts/audit.sh .`
+- `./scripts/ship.sh .`
