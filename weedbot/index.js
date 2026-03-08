@@ -29,6 +29,7 @@ function printUsage() {
   console.log("  node index.js remove <strain> <quantity>");
   console.log('  node index.js list');
   console.log('  node index.js log');
+  console.log('  node index.js stats');
 }
 
 function addStrain(data, strain, quantity) {
@@ -97,6 +98,24 @@ function listInventory(data) {
   });
 }
 
+function showStats(data) {
+  const totalStrains = data.inventory.length;
+  const totalGrams = data.inventory.reduce((sum, item) => sum + item.quantity, 0);
+  const lastTx = data.history.length > 0 ? data.history[data.history.length - 1] : null;
+  const firstTx = data.history.length > 0 ? data.history[0] : null;
+  const daysSinceFirst = firstTx
+    ? Math.floor((Date.now() - new Date(firstTx.timestamp).getTime()) / 86400000)
+    : 0;
+
+  console.log('Stats:');
+  console.log(`  Strains tracked: ${totalStrains}`);
+  console.log(`  Total inventory: ${totalGrams.toFixed(1)}g`);
+  if (lastTx) {
+    console.log(`  Last transaction: ${lastTx.action} ${lastTx.quantity}g of ${lastTx.strain} (${lastTx.timestamp})`);
+  }
+  console.log(`  Days since first entry: ${daysSinceFirst}`);
+}
+
 function showLog(data) {
   if (data.history.length === 0) {
     console.log('No history yet.');
@@ -125,6 +144,11 @@ function main() {
 
   if (command === 'log') {
     showLog(data);
+    return;
+  }
+
+  if (command === 'stats') {
+    showStats(data);
     return;
   }
 
