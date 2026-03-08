@@ -1001,6 +1001,135 @@ class FirehouseSubsAPI {
   }
 }
 
+// ─── DAIRY QUEEN ─────────────────────────────────────────────────────────────
+
+class DairyQueenAPI {
+  constructor() {
+    this.MENU = {
+      burgers: [
+        { id: 'flame_thrower_signature_stackburger', name: 'FlameThrower Signature Stackburger', description: 'Two seasoned beef patties, jalapeno bacon, pepper jack, FlameThrower sauce', price: 8.49 },
+        { id: 'bacon_two_cheese_deluxe_stackburger', name: 'Bacon Two Cheese Deluxe Signature Stackburger', description: 'Bacon, American and white cheddar, lettuce, tomato, onion', price: 8.29 },
+        { id: 'original_cheeseburger_signature_stackburger', name: 'Original Cheeseburger Signature Stackburger', description: 'Single seasoned beef patty with pickle, ketchup, mustard', price: 5.79 },
+      ],
+      chicken: [
+        { id: 'chicken_strip_basket_4pc', name: 'Chicken Strip Basket (4 pc)', description: 'Crispy chicken strips with fries, Texas toast, dipping sauce', price: 9.29 },
+        { id: 'chicken_strip_basket_6pc', name: 'Chicken Strip Basket (6 pc)', description: 'Six crispy chicken strips with fries and Texas toast', price: 11.29 },
+        { id: 'spicy_chicken_strip_sandwich', name: 'Spicy Chicken Strip Sandwich', description: 'Crispy chicken strips with spicy sauce, lettuce, tomato', price: 6.79 },
+      ],
+      blizzards: [
+        { id: 'oreo_blizzard', name: 'OREO Blizzard Treat', description: 'Vanilla soft serve blended with OREO cookie pieces', price_mini: 4.39, price_small: 5.29, price_medium: 6.19, price_large: 7.09 },
+        { id: 'reeses_pb_cup_blizzard', name: "REESE'S Peanut Butter Cup Blizzard Treat", description: "Vanilla soft serve with REESE'S Peanut Butter Cup pieces", price_mini: 4.59, price_small: 5.49, price_medium: 6.39, price_large: 7.29 },
+        { id: 'choco_brownie_extreme_blizzard', name: 'Choco Brownie Extreme Blizzard Treat', description: 'Chocolate chunks, brownie pieces, cocoa fudge', price_mini: 4.79, price_small: 5.69, price_medium: 6.59, price_large: 7.49 },
+      ],
+      ice_cream: [
+        { id: 'vanilla_cone', name: 'Vanilla Cone', description: 'Classic DQ vanilla soft serve cone', price_small: 2.49, price_medium: 2.99, price_large: 3.49 },
+        { id: 'hot_fudge_sundae', name: 'Hot Fudge Sundae', description: 'Vanilla soft serve with hot fudge topping', price_small: 3.49, price_medium: 4.19, price_large: 4.89 },
+        { id: 'dilly_bar', name: 'Dilly Bar', description: 'Vanilla soft serve coated in chocolate', price: 2.79 },
+      ],
+      drinks: [
+        { id: 'moolatte', name: 'Mocha MooLatté', description: 'Coffee blended drink with mocha flavor', price_small: 4.19, price_medium: 4.89, price_large: 5.49 },
+        { id: 'strawberry_shake', name: 'Strawberry Shake', description: 'Creamy strawberry shake', price_small: 4.29, price_medium: 4.99, price_large: 5.69 },
+        { id: 'fountain_drink', name: 'Fountain Drink', description: 'Coca-Cola Freestyle beverages', price_small: 2.19, price_medium: 2.59, price_large: 2.99 },
+      ],
+      kids_meals: [
+        { id: 'kids_hamburger_meal', name: "Kids' Hamburger Meal", description: 'Hamburger, side, drink, and kids dessert', price: 6.29 },
+        { id: 'kids_chicken_strips_meal', name: "Kids' Chicken Strips Meal", description: 'Two chicken strips, side, drink, and kids dessert', price: 6.49 },
+      ],
+      sides: [
+        { id: 'fries_regular', name: 'Fries', description: 'Golden crispy fries', price_small: 2.79, price_medium: 3.39, price_large: 3.99 },
+        { id: 'onion_rings', name: 'Onion Rings', description: 'Crispy battered onion rings', price_small: 3.29, price_medium: 3.99, price_large: 4.69 },
+        { id: 'cheese_curds', name: 'Cheese Curds', description: 'Crispy fried Wisconsin white cheddar cheese curds', price_small: 4.79, price_regular: 5.79 },
+      ],
+    };
+
+    this.storeEndpoints = [
+      'https://www.dairyqueen.com/en-us/api/store/nearby',
+      'https://api.dairyqueen.com/store/dq/v1/stores/nearby',
+      'https://www.dairyqueen.com/api/locator',
+    ];
+  }
+
+  async searchStores(lat, lng, radius = 25) {
+    const normalizedLat = Number(lat);
+    const normalizedLng = Number(lng);
+    const normalizedRadius = Number(radius);
+
+    for (const endpoint of this.storeEndpoints) {
+      try {
+        const url = new URL(endpoint);
+        url.searchParams.set('lat', String(normalizedLat));
+        url.searchParams.set('lng', String(normalizedLng));
+        if (endpoint.includes('/dq/v1/stores/nearby')) {
+          url.searchParams.set('radius', String(Math.max(normalizedRadius, 1)));
+          url.searchParams.set('limit', '25');
+        } else {
+          url.searchParams.set('radius', String(Math.max(normalizedRadius, 1)));
+        }
+
+        const res = await fetch(url.toString(), {
+          headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
+        });
+        if (!res.ok) continue;
+
+        const payload = await res.json();
+        const stores = payload?.stores || payload?.results || payload?.data?.stores || payload?.data || [];
+        if (Array.isArray(stores) && stores.length) return stores;
+      } catch {
+        // Try next endpoint.
+      }
+    }
+
+    throw new Error('No public Dairy Queen store locator endpoint is currently accessible.');
+  }
+
+  getMenu() {
+    return this.MENU;
+  }
+
+  _fuzzyScore(item, query) {
+    const q = query.toLowerCase().trim();
+    if (!q) return 0;
+    const haystack = `${item.name} ${item.description || ''}`.toLowerCase();
+    if (haystack.includes(q)) return 100;
+
+    const qTokens = q.split(/\s+/).filter(Boolean);
+    const tokenHits = qTokens.filter(t => haystack.includes(t)).length;
+    const tokenScore = qTokens.length ? (tokenHits / qTokens.length) * 70 : 0;
+
+    let i = 0;
+    for (const ch of haystack) {
+      if (ch === q[i]) i += 1;
+      if (i === q.length) break;
+    }
+    const subsequenceScore = q.length ? (i / q.length) * 30 : 0;
+
+    return tokenScore + subsequenceScore;
+  }
+
+  searchMenu(query) {
+    const matches = [];
+
+    for (const [category, items] of Object.entries(this.MENU)) {
+      for (const item of items) {
+        const score = this._fuzzyScore(item, query);
+        if (score >= 45) matches.push({ ...item, category, score: Number(score.toFixed(1)) });
+      }
+    }
+
+    return matches.sort((a, b) => b.score - a.score);
+  }
+
+  getPrice(itemId, size = 'medium') {
+    const normalizedSize = String(size).toLowerCase();
+    for (const items of Object.values(this.MENU)) {
+      const item = items.find(i => i.id === itemId);
+      if (!item) continue;
+      return item[`price_${normalizedSize}`] || item.price || item.price_regular || null;
+    }
+    return null;
+  }
+}
+
 // ─── EXPORTS ─────────────────────────────────────────────────────────────────
 
 export {
@@ -1019,4 +1148,6 @@ export {
   PizzaHutAPI,
   // Firehouse Subs
   FirehouseSubsAPI,
+  // Dairy Queen
+  DairyQueenAPI,
 };

@@ -1,6 +1,6 @@
 # Food: Integration Roadmap
 
-Current status: Dominos + Starbucks + McDonald's + Chipotle + Taco Bell + Pizza Hut
+Current status: Dominos + Starbucks + McDonald's + Chipotle + Taco Bell + Pizza Hut + Dairy Queen
 
 ## Working
 
@@ -41,15 +41,19 @@ Current status: Dominos + Starbucks + McDonald's + Chipotle + Taco Bell + Pizza 
    - Integrated into food.js as PizzaHutAPI
    - Uses quikorder.pizzahut.com legacy API with temp session tokens
 
+4. **Dairy Queen** -- DONE (v3.1.0)
+   - Store locator endpoint fallback + static menu + fuzzy search + pricing lookup
+   - Integrated into food.js as DairyQueenAPI
+
 ### Not Viable
 
-4. **Subway** -- No public API. Mobile app uses cert pinning + root detection. No reverse-engineered endpoints available. Dead end.
+5. **Subway** -- No public API. Mobile app uses cert pinning + root detection. No reverse-engineered endpoints available. Dead end.
 
-5. **Grubhub** -- Merchant-facing API only (menu/order management for restaurants). Not consumer ordering.
+6. **Grubhub** -- Merchant-facing API only (menu/order management for restaurants). Not consumer ordering.
 
-6. **DoorDash** -- Drive API is logistics/delivery-as-a-service, not consumer ordering. Production access restricted to business partners.
+7. **DoorDash** -- Drive API is logistics/delivery-as-a-service, not consumer ordering. Production access restricted to business partners.
 
-7. **Uber Eats** -- Merchant-facing marketplace API. Requires business registration. Not consumer ordering.
+8. **Uber Eats** -- Merchant-facing marketplace API. Requires business registration. Not consumer ordering.
 
 ### Low Priority (Paywall/No Public API)
 
@@ -146,4 +150,3 @@ Text-to-order: Josh texts "chipotle burrito bowl" → order placed → pickup re
 - Scheduled orders ("chipotle in 2 hours")
 - Loyalty integration
 - Taco Bell + Subway
-
