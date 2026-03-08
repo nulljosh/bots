@@ -3,7 +3,13 @@
     {
       "strain": "OG Kush",
       "quantity": 6.5,
-      "dateAdded": "2026-02-15T10:22:00.000Z"
+      "dateAdded": "2026-02-15T10:22:00.000Z",
+      "prices": {
+        "perGram": 12,
+        "bags": {
+          "3.5": 35
+        }
+      }
     },
     {
       "strain": "Girl Scout Cookies",
@@ -64,11 +70,6 @@
       "strain": "Pineapple Express",
       "quantity": 3,
       "dateAdded": "2026-03-06T09:15:00.000Z"
-    },
-    {
-      "strain": "Test Strain",
-      "quantity": 1,
-      "dateAdded": "2026-03-08T04:44:01.060Z"
     }
   ],
   "history": [
@@ -209,6 +210,12 @@
       "strain": "Test Strain",
       "quantity": 1,
       "timestamp": "2026-03-08T04:44:01.060Z"
+    },
+    {
+      "action": "delete",
+      "strain": "Test Strain",
+      "quantity": 1,
+      "timestamp": "2026-03-08T04:44:01.082Z"
     }
   ]
 }
