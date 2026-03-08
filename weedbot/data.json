@@ -198,6 +198,18 @@
       "strain": "OG Kush",
       "quantity": 0.5,
       "timestamp": "2026-03-08T04:40:48.168Z"
+    },
+    {
+      "action": "add",
+      "strain": "Test Strain",
+      "quantity": 1,
+      "timestamp": "2026-03-08T04:44:01.060Z"
+    },
+    {
+      "action": "delete",
+      "strain": "Test Strain",
+      "quantity": 1,
+      "timestamp": "2026-03-08T04:44:01.082Z"
     }
   ]
 }

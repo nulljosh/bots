@@ -7,6 +7,42 @@ const __dirname = path.dirname(__filename);
 const dataPath = path.join(__dirname, 'data.json');
 const backupPath = path.join(__dirname, 'data.backup.json');
 const configPath = path.join(__dirname, 'config.json');
+const usersPath = path.join(__dirname, 'users.json');
+
+function loadUsers() {
+  try { return JSON.parse(fs.readFileSync(usersPath, 'utf8')); }
+  catch { return { users: [], requireAuth: false, protectedCommands: [] }; }
+}
+
+function authenticate(name, pin) {
+  const { users } = loadUsers();
+  return users.find(u => u.name.toLowerCase() === (name || '').toLowerCase() && u.pin === pin) || null;
+}
+
+function checkAuth(command, args) {
+  const cfg = loadUsers();
+  if (!cfg.requireAuth || !cfg.protectedCommands.includes(command)) return { name: 'anonymous' };
+  const ui = args.indexOf('--user'), pi = args.indexOf('--pin');
+  const userName = ui !== -1 ? args[ui + 1] : null;
+  const pin = pi !== -1 ? args[pi + 1] : null;
+  if (!userName || !pin) {
+    console.error(`Auth required for "${command}". Add --user <name> --pin <pin>`);
+    process.exit(1);
+  }
+  const user = authenticate(userName, pin);
+  if (!user) { console.error('Invalid username or PIN.'); process.exit(1); }
+  return user;
+}
+
+function stripAuthFlags(args) {
+  const out = [];
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--user' || args[i] === '--pin') { i++; } else { out.push(args[i]); }
+  }
+  return out;
+}
+
+
 
 // --- Config ---
 function loadConfig() {
@@ -242,16 +278,19 @@ function main() {
   const command = args[0] || 'list';
   const rest = args.slice(1);
 
+  checkAuth(command, process.argv.slice(2));
+  const cleanRest = stripAuthFlags(rest);
+
   switch (command) {
     case 'list': listInventory(data); break;
 
     case 'find': case 'search':
-      if (!rest.length) { console.error('Usage: weed find <query>'); process.exit(1); }
-      findStrain(data, rest.join(' '));
+      if (!cleanRest.length) { console.error('Usage: weed find <query>'); process.exit(1); }
+      findStrain(data, cleanRest.join(' '));
       break;
 
     case 'log': {
-      const limit = rest[0] ? parseInt(rest[0]) : null;
+      const limit = cleanRest[0] ? parseInt(cleanRest[0]) : null;
       showLog(data, limit);
       break;
     }
@@ -259,14 +298,14 @@ function main() {
     case 'stats': showStats(data); break;
 
     case 'add': {
-      const parsed = parseStrainAndQuantity(rest);
+      const parsed = parseStrainAndQuantity(cleanRest);
       if (!parsed) { console.error('Usage: weed add <strain> <qty>'); process.exit(1); }
       addStrain(data, parsed.strain, parsed.quantity);
       break;
     }
 
     case 'remove': {
-      const parsed = parseStrainAndQuantity(rest);
+      const parsed = parseStrainAndQuantity(cleanRest);
       if (!parsed) { console.error('Usage: weed remove <strain> <qty>'); process.exit(1); }
       removeStock(data, [parsed.strain], parsed.quantity);
       break;
@@ -274,12 +313,12 @@ function main() {
 
     case 'use': case 'consume': {
       // Try to parse qty from end of args
-      const parsed = rest.length ? parseStrainAndQuantity(rest) : null;
+      const parsed = cleanRest.length ? parseStrainAndQuantity(cleanRest) : null;
       if (parsed) {
         useStrain(data, [parsed.strain], parsed.quantity);
-      } else if (rest.length) {
+      } else if (cleanRest.length) {
         // Strain given, no qty — use session default
-        useStrain(data, rest, cfg.sessionSize);
+        useStrain(data, cleanRest, cfg.sessionSize);
       } else {
         // No args — use last strain, session default
         useStrain(data, [], cfg.sessionSize);
@@ -288,13 +327,13 @@ function main() {
     }
 
     case 'delete': case 'drop':
-      if (!rest.length) { console.error('Usage: weed delete <strain>'); process.exit(1); }
-      deleteStrain(data, rest);
+      if (!cleanRest.length) { console.error('Usage: weed delete <strain>'); process.exit(1); }
+      deleteStrain(data, cleanRest);
       break;
 
     case 'config': {
-      if (rest[0] === 'session' && rest[1]) {
-        const size = Number(rest[1]);
+      if (cleanRest[0] === 'session' && cleanRest[1]) {
+        const size = Number(cleanRest[1]);
         if (!Number.isFinite(size) || size <= 0) { console.error('Invalid session size'); process.exit(1); }
         cfg.sessionSize = size;
         saveConfig(cfg);

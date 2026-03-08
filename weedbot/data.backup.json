@@ -2,7 +2,7 @@
   "inventory": [
     {
       "strain": "OG Kush",
-      "quantity": 7,
+      "quantity": 6.5,
       "dateAdded": "2026-02-15T10:22:00.000Z"
     },
     {
@@ -64,6 +64,11 @@
       "strain": "Pineapple Express",
       "quantity": 3,
       "dateAdded": "2026-03-06T09:15:00.000Z"
+    },
+    {
+      "strain": "Test Strain",
+      "quantity": 1,
+      "dateAdded": "2026-03-08T04:44:01.060Z"
     }
   ],
   "history": [
@@ -192,6 +197,18 @@
       "strain": "Blue Dream",
       "quantity": 0.3,
       "timestamp": "2026-03-08T04:40:48.149Z"
+    },
+    {
+      "action": "use",
+      "strain": "OG Kush",
+      "quantity": 0.5,
+      "timestamp": "2026-03-08T04:40:48.168Z"
+    },
+    {
+      "action": "add",
+      "strain": "Test Strain",
+      "quantity": 1,
+      "timestamp": "2026-03-08T04:44:01.060Z"
     }
   ]
 }

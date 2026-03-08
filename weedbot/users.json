@@ -1,0 +1,21 @@
+{
+  "users": [
+    {
+      "name": "josh",
+      "pin": "1234",
+      "role": "admin"
+    },
+    {
+      "name": "ben",
+      "pin": "5678",
+      "role": "user"
+    }
+  ],
+  "requireAuth": false,
+  "protectedCommands": [
+    "add",
+    "remove",
+    "delete",
+    "use"
+  ]
+}

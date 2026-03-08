@@ -1,0 +1,7 @@
+{
+  "name": "starbot",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Starbucks automation via Puppeteer",
+  "main": "index.js"
+}
