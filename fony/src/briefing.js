@@ -271,6 +271,17 @@ async function getArthurStatus() {
           break;
         }
       }
+      // Fallback: parse [resume] lines if no step/loss rows found
+      if (step === 'unknown' || loss === 'unknown') {
+        for (let i = lines.length - 1; i >= 0; i--) {
+          const r = lines[i].match(/\[resume\] Resuming from step (\d+), best loss ([\d.]+)/);
+          if (r) {
+            step = `${r[1]} (last checkpoint)`;
+            loss = parseFloat(r[2]).toFixed(1);
+            break;
+          }
+        }
+      }
     }
 
     // Compute training duration
