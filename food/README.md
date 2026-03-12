@@ -36,7 +36,7 @@ node health.js
 CLI wrapper: `~/.openclaw/workspace/skills/dominos/scripts/order.js`
 
 ```bash
-node order.js usual         # Price the usual order
+node order.js usual         # Price the usual order + Opticon balance preflight
 node order.js place         # Place order
 node order.js menu <query>  # Search menu
 node order.js track         # Track delivery
@@ -44,6 +44,17 @@ node order.js stores <addr> # Find nearby stores
 node order.js loyalty       # Check points
 node order.js coupons       # Coupons
 ```
+
+## Dominos Purchase Guard
+
+The OpenClaw Domino's wrapper now includes a purchase preflight before ordering:
+- reads saved Opticon balance first
+- computes purchase as a percent of available balance
+- includes store-status preflight when available
+- emits a cleaner receipt after placement
+
+This makes the default order flow:
+`balance -> percent -> store check -> price -> confirm -> place -> receipt/track`
 
 ## Dominos Defaults
 

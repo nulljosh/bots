@@ -38,11 +38,14 @@ getPrice(itemId, size)           // 'small'|'medium'|'large', returns number or 
 
 ## Dominos Ordering Flow
 
-1. `DominosStoreFinder.find(address)` → StoreID
-2. `DominosOrder.setAddress().setStore().setCustomer().addProduct()`
-3. `order.validate()` → confirm no errors
-4. `order.price()` → get total
-5. Confirm with Josh, then `order.setPayment().place()`
+1. Read saved Opticon balance first (purchase guard)
+2. Compute purchase percent of balance
+3. Check store status when available
+4. `DominosStoreFinder.find(address)` → StoreID
+5. `DominosOrder.setAddress().setStore().setCustomer().addProduct()`
+6. `order.price()` → get total + preflight context
+7. Confirm with Josh, then `order.validate()` and `order.setPayment().place()`
+8. Return a cleaner receipt + tracking context
 
 ## Starbucks
 
