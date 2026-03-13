@@ -1,4 +1,4 @@
-# bots -- Agent Notes (v1.1.0)
+# bots (v1.1.0)
 
 Monorepo for automation bots. Two active projects:
 
