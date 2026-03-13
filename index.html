@@ -18,27 +18,36 @@
 :root{
     --bg-primary:#ffffff;
     --bg-secondary:#f5f5f7;
+    --bg-tertiary:#ffffff;
     --text-primary:#111111;
     --text-secondary:#636366;
+    --text-tertiary:#7b7b80;
     --text-quaternary:#98989d;
-    --border:#c5c5ca;
+    --border:#d8d8dd;
     --link:#0a84ff;
     --accent:#0a84ff;
+    --green:#16a34a;
+    --amber:#d97706;
+    --muted:#8e8e93;
 }
 
 [data-theme="dark"]{
     --bg-primary:#000000;
     --bg-secondary:#111111;
+    --bg-tertiary:#161616;
     --text-primary:#f5f5f7;
-    --text-secondary:#98989d;
+    --text-secondary:#b1b1b6;
+    --text-tertiary:#98989d;
     --text-quaternary:#636366;
-    --border:rgba(255,255,255,0.06);
+    --border:rgba(255,255,255,0.08);
     --link:#0a84ff;
     --accent:#0a84ff;
+    --green:#30d158;
+    --amber:#ff9f0a;
+    --muted:#8e8e93;
 }
 
 html{scroll-behavior:smooth}
-
 body{
     font-family:'Geist',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;
     font-weight:300;
@@ -46,205 +55,49 @@ body{
     color:var(--text-primary);
     line-height:1.6;
     min-height:100dvh;
-    transition:background 0.3s,color 0.3s;
+    transition:background .3s,color .3s;
     -webkit-font-smoothing:antialiased;
 }
-
-.container{
-    max-width:720px;
-    margin:0 auto;
-    padding:4rem clamp(1.25rem,5vw,3rem) 3rem;
-}
-
-/* Header */
-header{
-    margin-bottom:3rem;
-    opacity:0;
-    animation:fadeUp 0.8s cubic-bezier(.16,1,.3,1) forwards;
-}
-
-header .top-row{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:1rem;
-}
-
-h1{
-    font-size:1.25rem;
-    font-weight:600;
-    letter-spacing:-0.035em;
-}
-
-.subtitle{
-    color:var(--text-secondary);
-    font-size:0.9375rem;
-    line-height:1.7;
-}
-
-/* Theme toggle */
-.theme-toggle{
-    background:var(--bg-secondary);
-    border:none;
-    cursor:pointer;
-    padding:0.375rem 0.625rem;
-    border-radius:28px;
-    color:var(--text-secondary);
-    transition:color 0.2s,transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
-    display:flex;
-    align-items:center;
-}
+.container{max-width:880px;margin:0 auto;padding:4rem clamp(1.25rem,5vw,3rem) 3rem}
+header,.section,.footer{opacity:0;animation:fadeUp .8s cubic-bezier(.16,1,.3,1) forwards}
+.section:nth-of-type(1){animation-delay:.08s}.section:nth-of-type(2){animation-delay:.16s}.section:nth-of-type(3){animation-delay:.24s}.section:nth-of-type(4){animation-delay:.32s}.section:nth-of-type(5){animation-delay:.40s}.footer{animation-delay:.48s}
+header{margin-bottom:2.75rem}
+header .top-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;gap:1rem}
+h1{font-size:1.35rem;font-weight:600;letter-spacing:-.04em}
+.subtitle{color:var(--text-secondary);font-size:.97rem;line-height:1.75;max-width:42rem}
+.theme-toggle{background:var(--bg-secondary);border:none;cursor:pointer;padding:.42rem .68rem;border-radius:999px;color:var(--text-secondary);transition:color .2s,transform .2s cubic-bezier(.34,1.56,.64,1);display:flex;align-items:center}
 .theme-toggle:hover{color:var(--text-primary);transform:scale(1.05)}
 .theme-toggle svg{width:18px;height:18px}
-
-/* Sections */
-.section{
-    margin-bottom:2.5rem;
-    opacity:0;
-    animation:fadeUp 0.8s cubic-bezier(.16,1,.3,1) forwards;
-}
-.section:nth-child(2){animation-delay:0.1s}
-.section:nth-child(3){animation-delay:0.2s}
-.section:nth-child(4){animation-delay:0.3s}
-.section:nth-child(5){animation-delay:0.4s}
-.section:nth-child(6){animation-delay:0.5s}
-
-.label{
-    font-size:0.6875rem;
-    font-weight:500;
-    text-transform:uppercase;
-    letter-spacing:0.12em;
-    color:var(--text-secondary);
-    margin-bottom:1rem;
-}
-
-/* Cards */
-.card{
-    background:var(--bg-secondary);
-    border-radius:12px;
-    padding:1rem 1.25rem;
-    margin-bottom:0.5rem;
-    transition:transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
-}
-.card:hover{transform:translateY(-2px)}
-
-.card h3{
-    font-size:0.9375rem;
-    font-weight:500;
-    color:var(--text-primary);
-    margin-bottom:0.375rem;
-}
-
-.card p{
-    color:var(--text-secondary);
-    font-size:0.9375rem;
-    line-height:1.6;
-}
-
-/* Tags */
-.tag{
-    display:inline-block;
-    font-size:0.6875rem;
-    letter-spacing:0.06em;
-    text-transform:uppercase;
-    padding:2px 10px;
-    border-radius:28px;
-    background:var(--bg-primary);
-    color:var(--text-quaternary);
-    margin-right:0.375rem;
-    margin-top:0.5rem;
-}
-
-[data-theme="dark"] .tag{background:rgba(255,255,255,0.06)}
-:root:not([data-theme="dark"]) .tag{background:rgba(0,0,0,0.04)}
-
-.tag.amber{color:var(--accent)}
-.tag.muted{color:var(--text-quaternary)}
-
-/* Links */
-a{
-    color:var(--link);
-    text-decoration:none;
-    position:relative;
-}
-
-a::after{
-    content:'';
-    position:absolute;
-    bottom:-1px;
-    left:0;
-    width:0;
-    height:1px;
-    background:var(--link);
-    transition:width 0.3s cubic-bezier(0.4,0,0.2,1);
-}
-
+.section{margin-bottom:2.3rem}
+.label{font-size:.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--text-secondary);margin-bottom:1rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.75rem}
+.card{background:var(--bg-secondary);border:1px solid var(--border);border-radius:16px;padding:1rem 1.1rem;transition:transform .2s cubic-bezier(.34,1.56,.64,1),border-color .2s ease,background .2s ease}
+.card:hover{transform:translateY(-2px);border-color:rgba(10,132,255,.35)}
+.card h3{font-size:.98rem;font-weight:560;color:var(--text-primary);margin-bottom:.34rem;letter-spacing:-.02em}
+.card p{color:var(--text-secondary);font-size:.92rem;line-height:1.6}
+.card .meta{margin-top:.7rem;color:var(--text-tertiary);font-size:.78rem}
+.tag{display:inline-block;font-size:.67rem;letter-spacing:.06em;text-transform:uppercase;padding:3px 10px;border-radius:999px;background:var(--bg-tertiary);color:var(--text-quaternary);margin-right:.38rem;margin-top:.55rem;border:1px solid var(--border)}
+.tag.live{color:var(--green)}.tag.partial{color:var(--amber)}.tag.planned{color:var(--muted)}.tag.new{color:var(--accent)}
+a{color:var(--link);text-decoration:none;position:relative}
+a::after{content:'';position:absolute;bottom:-1px;left:0;width:0;height:1px;background:var(--link);transition:width .3s cubic-bezier(.4,0,.2,1)}
 a:hover::after{width:100%}
-
-/* Flow/timeline */
-.flow{
-    margin:0.75rem 0 0;
-    padding-left:1rem;
-    border-left:2px solid var(--border);
-}
-
-.flow .step{
-    position:relative;
-    padding:0.3rem 0 0.3rem 1rem;
-    color:var(--text-secondary);
-    font-size:0.8125rem;
-}
-
-.flow .step::before{
-    content:'';
-    position:absolute;
-    left:-1.35rem;
-    top:50%;
-    transform:translateY(-50%);
-    width:8px;
-    height:8px;
-    border-radius:50%;
-    background:var(--accent);
-    border:2px solid var(--bg-primary);
-}
-
-/* Code/pre */
-code{
-    background:var(--bg-secondary);
-    padding:0.15rem 0.4rem;
-    border-radius:4px;
-    font-size:0.8125rem;
-}
-
-.card pre{
-    color:var(--text-secondary);
-    font-size:0.8125rem;
-    line-height:1.6;
-}
-
-/* Architecture */
+.list{display:grid;gap:.6rem}
+.list .item{background:var(--bg-secondary);border:1px solid var(--border);border-radius:14px;padding:.9rem 1rem}
+.list .item strong{font-weight:560}
+.flow{margin:.8rem 0 0;padding-left:1rem;border-left:2px solid var(--border)}
+.flow .step{position:relative;padding:.24rem 0 .24rem 1rem;color:var(--text-secondary);font-size:.84rem}
+.flow .step::before{content:'';position:absolute;left:-1.34rem;top:50%;transform:translateY(-50%);width:8px;height:8px;border-radius:50%;background:var(--accent);border:2px solid var(--bg-primary)}
 .arch{margin:1rem 0;text-align:center}
-.arch img{max-width:100%;border-radius:8px;opacity:0.85}
-
-/* Footer */
-.footer{
-    margin-top:2.5rem;
-    padding-top:1.5rem;
-    border-top:1px solid var(--border);
-    color:var(--text-secondary);
-    font-size:0.8125rem;
-    opacity:0;
-    animation:fadeUp 0.8s cubic-bezier(.16,1,.3,1) 0.6s forwards;
-}
-
-.footer a{color:var(--text-secondary);text-decoration:underline;text-underline-offset:2px}
-.footer a:hover{color:var(--text-primary)}
-.footer a::after{display:none}
+.arch img{max-width:100%;border-radius:10px;opacity:.9;border:1px solid var(--border)}
+code{background:var(--bg-secondary);padding:.15rem .4rem;border-radius:4px;font-size:.82rem}
+pre{white-space:pre-wrap;color:var(--text-secondary);font-size:.82rem;line-height:1.6}
+.footer{margin-top:2.7rem;padding-top:1.5rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.82rem}
+.footer a{color:var(--text-secondary);text-decoration:underline;text-underline-offset:2px}.footer a:hover{color:var(--text-primary)}.footer a::after{display:none}
+.small{font-size:.82rem;color:var(--text-tertiary)}
 </style>
 </head>
 <body>
 <div class="container">
-
 <header>
 <div class="top-row">
 <h1>bots</h1>
@@ -265,54 +118,81 @@ code{
     </svg>
 </button>
 </div>
-<p class="subtitle">Service automation monorepo. AI phone calls and headless food ordering.</p>
+<p class="subtitle">Service automation monorepo. Updated to reflect what changed since the original index: the food stack expanded, weedbot landed, naming drift is cleaned up, and the landing page now mirrors the repo instead of an older snapshot.</p>
 </header>
 
 <div class="section">
 <p class="label">Projects</p>
-
+<div class="grid">
 <div class="card">
 <h3>fony</h3>
-<p>AI-powered phone calls via Twilio. Automated voice interactions with configurable agents and real-time transcription.</p>
+<p>AI daily briefing phone calls via Twilio. Live 9 AM outbound briefings with Polly TTS, calendar, weather, finance, news, and Arthur status.</p>
+<span class="tag live">live</span>
 <span class="tag">twilio</span>
-<span class="tag">express</span>
-<span class="tag">node.js</span>
+<span class="tag">polly</span>
+<span class="tag">claude</span>
+<div class="meta"><a href="./fony/">Open app</a></div>
 </div>
 
 <div class="card">
-<h3>foodie</h3>
-<p>Unified food API. Headless ordering, menu search, store lookup, and order tracking across multiple restaurant chains.</p>
-<span class="tag">dominos</span>
-<span class="tag amber">starbucks</span>
-<span class="tag muted">mcdonalds</span>
+<h3>food</h3>
+<p>Unified food API with one module over 8 chains: Dominos, Starbucks, McDonald's, Chipotle, Taco Bell, Pizza Hut, Firehouse Subs, and Dairy Queen.</p>
+<span class="tag live">v3.1.0</span>
+<span class="tag">8 chains</span>
+<span class="tag">ordering</span>
+<div class="meta"><a href="./food/README.md">Docs</a></div>
+</div>
+
+<div class="card">
+<h3>weedbot</h3>
+<p>Multi-category product tracker for greenlandbotanicals.cc with CLI workflows, local inventory, price tables, WooCommerce account integration, and live browsing.</p>
+<span class="tag live">v2.0.0</span>
+<span class="tag new">new since original index</span>
+<span class="tag">puppeteer</span>
+<div class="meta"><a href="./weedbot/README.md">Docs</a></div>
+</div>
 </div>
 </div>
 
 <div class="section">
-<p class="label">Foodie APIs</p>
+<p class="label">What changed</p>
+<div class="list">
+<div class="item"><strong>Food surface got broader.</strong> The old page only called out Dominos, Starbucks, and McDonald's. The repo now exposes 8 chains through <code>food.js</code>, with live ordering on Dominos, Chipotle, Taco Bell, and Pizza Hut.</div>
+<div class="item"><strong>Weedbot exists now.</strong> It was missing from the landing page entirely. It's now a first-class project in the index.</div>
+<div class="item"><strong>Naming is corrected.</strong> The stale page said <code>foodie</code>. The repo is <code>food</code>.</div>
+<div class="item"><strong>Scope is truer.</strong> Fony is described as the current daily briefing system, not a generic call agent.</div>
+</div>
+</div>
 
+<div class="section">
+<p class="label">Food capabilities</p>
+<div class="grid">
 <div class="card">
-<h3>DominosAPI</h3>
-<p>Full ordering pipeline for Canada and US. Store finder, menu search, order builder, pricing, validation, payment, placement, and live tracking. OAuth support for rewards and profile.</p>
+<h3>Live ordering</h3>
+<p>Dominos, Chipotle, Taco Bell, and Pizza Hut have active ordering flows. Dominos includes pricing, validation, payment, placement, tracking, OAuth, loyalty, and coupons.</p>
+<span class="tag live">shipping</span>
+</div>
+<div class="card">
+<h3>Partial integrations</h3>
+<p>Starbucks, Firehouse Subs, and Dairy Queen are wired for search and menu access, but still have auth or credential gaps before full checkout.</p>
+<span class="tag partial">partial</span>
+</div>
+<div class="card">
+<h3>Read-only data</h3>
+<p>McDonald's provides menu and nutrition lookup without a public ordering path. Useful for discovery, not checkout.</p>
+<span class="tag planned">read-only</span>
+</div>
+</div>
+
+<div class="card" style="margin-top:.75rem">
+<h3>Dominos order flow</h3>
 <div class="flow">
-<div class="step">Find store by address</div>
-<div class="step">Build order (items, toppings, coupons)</div>
-<div class="step">Price and validate</div>
-<div class="step">Set payment and place</div>
-<div class="step">Track by phone or order ID</div>
+<div class="step">Check balance and purchase percentage</div>
+<div class="step">Verify store availability</div>
+<div class="step">Build and price order</div>
+<div class="step">Confirm and place payment</div>
+<div class="step">Return receipt and tracking</div>
 </div>
-</div>
-
-<div class="card">
-<h3>StarbucksAPI</h3>
-<p>Store finder works via public BFF endpoint. Full ordering (menu, cart, pricing, placement) requires client_id/secret intercepted from the Android app via mitmproxy.</p>
-<span class="tag amber">partial</span>
-</div>
-
-<div class="card">
-<h3>McDonaldsAPI</h3>
-<p>Menu lookup and nutrition data for Canadian market. Uses unofficial JSON endpoints. No ordering API available.</p>
-<span class="tag muted">read-only</span>
 </div>
 </div>
 
@@ -324,69 +204,32 @@ code{
 </div>
 
 <div class="section">
-<p class="label">Structure</p>
+<p class="label">Repo snapshot</p>
 <div class="card">
 <pre>bots/
-  fony/           Twilio voice agent
-    index.js      Express server + call handler
-    src/          Voice scripts, TTS config
-    tests/        Integration tests
-  foodie/         Food ordering API
-    food.js       All six APIs in one module
-    src/          Handlers, parsers, notifiers
-    docs/         Integration docs</pre>
+  fony/           AI daily briefing calls via Twilio
+  food/           Unified food API across 8 chains
+  weedbot/        Product tracker + live scraping + account tools
+  docs/           GitHub Pages assets
+  scripts/        Repo helpers and maintenance tools</pre>
+<p class="small" style="margin-top:.8rem">Last landing page refresh: March 2026.</p>
 </div>
 </div>
 
 <div class="footer">
 <p>MIT 2026, Joshua Trommel</p>
 </div>
-
 </div>
 
 <script>
 const themeToggle = document.getElementById('themeToggle');
 const sunIcon = document.getElementById('sunIcon');
 const moonIcon = document.getElementById('moonIcon');
-
-function getPreferredTheme() {
-    const saved = localStorage.getItem('theme');
-    if (saved) return saved;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
-function setTheme(theme, animate) {
-    function apply() {
-        if (theme === 'dark') {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            sunIcon.style.display = 'none';
-            moonIcon.style.display = 'block';
-        } else {
-            document.documentElement.removeAttribute('data-theme');
-            sunIcon.style.display = 'block';
-            moonIcon.style.display = 'none';
-        }
-        localStorage.setItem('theme', theme);
-    }
-    if (animate && document.startViewTransition) {
-        document.startViewTransition(apply);
-    } else {
-        apply();
-    }
-}
-
-setTheme(getPreferredTheme(), false);
-
-themeToggle.addEventListener('click', () => {
-    const current = document.documentElement.hasAttribute('data-theme') ? 'dark' : 'light';
-    setTheme(current === 'dark' ? 'light' : 'dark', true);
-});
-
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-    if (!localStorage.getItem('theme')) {
-        setTheme(e.matches ? 'dark' : 'light', true);
-    }
-});
+function getPreferredTheme(){const saved=localStorage.getItem('theme');if(saved)return saved;return window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}
+function setTheme(theme,animate){function apply(){if(theme==='dark'){document.documentElement.setAttribute('data-theme','dark');sunIcon.style.display='none';moonIcon.style.display='block'}else{document.documentElement.removeAttribute('data-theme');sunIcon.style.display='block';moonIcon.style.display='none'}localStorage.setItem('theme',theme)}if(animate&&document.startViewTransition){document.startViewTransition(apply)}else{apply()}}
+setTheme(getPreferredTheme(),false);
+themeToggle.addEventListener('click',()=>{const current=document.documentElement.hasAttribute('data-theme')?'dark':'light';setTheme(current==='dark'?'light':'dark',true)});
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',(e)=>{if(!localStorage.getItem('theme')){setTheme(e.matches?'dark':'light',true)}});
 </script>
 </body>
 </html>
