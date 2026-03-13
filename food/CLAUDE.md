@@ -63,7 +63,7 @@ getPrice(itemId, size)           // 'small'|'medium'|'large', returns number or 
 ## Health Check
 
 ```bash
-node health.js  # All 7 tests should pass green
+node tests/health.js  # All 7 tests should pass green
 ```
 
 ## Testing

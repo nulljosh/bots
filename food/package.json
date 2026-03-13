@@ -1,11 +1,11 @@
 {
   "name": "food",
-  "version": "3.0.0",
-  "description": "Master food bot — Dominos ordering + tracking, Starbucks store finder, McDonald's menu, Chipotle ordering, Taco Bell ordering, Pizza Hut ordering",
+  "version": "3.1.0",
+  "description": "Unified food API — 8 chains: Dominos, Starbucks, McDonald's, Chipotle, Taco Bell, Pizza Hut, Firehouse Subs, Dairy Queen",
   "type": "module",
   "main": "food.js",
   "scripts": {
-    "test": "node --test test.js"
+    "test": "node --test tests/test.js"
   },
   "keywords": [
     "dominos",

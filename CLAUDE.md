@@ -6,13 +6,15 @@ Monorepo for automation bots. Two active projects:
 AI phone calls via Twilio. See fony/CLAUDE.md.
 
 ## food
-Unified food API. Six classes in one file (food/food.js):
+Unified food API. Eight classes in one file (food/food.js):
 - `DominosAPI` -- full ordering pipeline, CA + US, OAuth for rewards/profile
 - `StarbucksAPI` -- store finder works; ordering needs mitmproxy credential intercept
 - `McDonaldsAPI` -- menu/nutrition lookup (CA only), no ordering
 - `ChipotleAPI` -- restaurant search, menu, ordering, pickup times, delivery estimates
 - `TacoBellAPI` -- location search, menu, cart/ordering, delivery estimates, promotions
 - `PizzaHutAPI` -- store finder, menu, cart/ordering, session-based auth
+- `FirehouseSubsAPI` -- RBI GraphQL store search (US only), static menu
+- `DairyQueenAPI` -- store search via DQ locator API, static menu
 
 Default Dominos order: Large hand tossed (14SCREEN), pepperoni (P) + bacon (K), garlic dip (GARBUTTER).
 Store, address, payment: loaded from .env (see food/.env.example).
@@ -35,6 +37,9 @@ CLI tool with JSON storage, Puppeteer scraping for live listings, WooCommerce lo
 bots/
 ├── fony/
 ├── food/
+│   ├── food.js        (all 8 chain classes)
+│   ├── tests/         (test.js, test-dominos.js, health.js)
+│   └── docs/
 ├── weedbot/
 ├── index.html    (GitHub Pages landing)
 ├── README.md
