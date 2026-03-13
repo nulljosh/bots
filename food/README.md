@@ -1,4 +1,6 @@
-# food
+![Food](icon.svg)
+# Food
+![version](https://img.shields.io/badge/version-v3.0.0-blue)
 
 Unified food API — 8 chains, one module (`food.js`).
 
