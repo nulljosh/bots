@@ -1,10 +1,14 @@
 {
   "name": "weedbot",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "type": "module",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "echo ok"
+    "test": "node --test test.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.0",
+    "puppeteer": "^22.0.0"
   }
 }

@@ -1,3 +1,82 @@
 {
-  "sessionSize": 0.5
+  "sessionSize": 0.5,
+  "rootUrl": "https://greenlandbotanicals.cc",
+  "categories": {
+    "flower": {
+      "unit": "g",
+      "subcategories": [
+        "indica",
+        "sativa",
+        "hybrid",
+        "pre-rolls",
+        "shake",
+        "popcorn",
+        "premium-aaaa",
+        "craft-exotics",
+        "wholesale",
+        "99-ounces-and-under",
+        "aa"
+      ]
+    },
+    "extracts": {
+      "unit": "g",
+      "subcategories": [
+        "shatter",
+        "budder",
+        "live-resin",
+        "kief",
+        "hash",
+        "sauce",
+        "oils",
+        "thc-diamonds",
+        "crumble",
+        "rosin"
+      ]
+    },
+    "edibles": {
+      "unit": "mg",
+      "subcategories": [
+        "gummies",
+        "chocolate",
+        "cookies",
+        "syrup"
+      ]
+    },
+    "mushrooms": {
+      "unit": "g",
+      "subcategories": [
+        "dried",
+        "magic",
+        "edible",
+        "microdose",
+        "tea",
+        "tinctures"
+      ]
+    },
+    "vapes": {
+      "unit": "unit",
+      "subcategories": [
+        "disposable",
+        "cartridge",
+        "nicotine",
+        "battery"
+      ]
+    },
+    "nicotine": {
+      "unit": "unit",
+      "subcategories": [
+        "pouches",
+        "vapes",
+        "cigarettes"
+      ]
+    },
+    "accessories": {
+      "unit": "unit",
+      "subcategories": [
+        "pipes",
+        "health",
+        "snacks"
+      ]
+    }
+  }
 }

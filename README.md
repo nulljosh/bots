@@ -15,6 +15,7 @@ Monorepo for service automation bots.
 |---------|-------------|----------|
 | **fony** | AI phone calls via Twilio | Node.js |
 | **food** | Master food bot -- Dominos ordering, Starbucks store finder, McDonald's menu, Chipotle, Taco Bell, Pizza Hut | Node.js |
+| **weedbot** | Multi-category product tracker for greenlandbotanicals.cc -- 7 categories, Puppeteer scraping, WooCommerce account integration | Node.js |
 
 ## Roadmap
 

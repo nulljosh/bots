@@ -4,72 +4,169 @@
       "strain": "OG Kush",
       "quantity": 6.5,
       "dateAdded": "2026-02-15T10:22:00.000Z",
-      "prices": {
-        "perGram": 12,
-        "bags": {
-          "3.5": 35
-        }
-      }
+      "name": "OG Kush",
+      "category": "flower",
+      "unit": "g",
+      "subcategory": null,
+      "vendor": null,
+      "url": null,
+      "prices": {}
     },
     {
       "strain": "Girl Scout Cookies",
       "quantity": 3.5,
-      "dateAdded": "2026-02-18T14:05:00.000Z"
+      "dateAdded": "2026-02-18T14:05:00.000Z",
+      "name": "Girl Scout Cookies",
+      "category": "flower",
+      "unit": "g",
+      "subcategory": null,
+      "vendor": null,
+      "url": null,
+      "prices": {}
     },
     {
       "strain": "Sour Diesel",
       "quantity": 5,
-      "dateAdded": "2026-02-20T09:30:00.000Z"
+      "dateAdded": "2026-02-20T09:30:00.000Z",
+      "name": "Sour Diesel",
+      "category": "flower",
+      "unit": "g",
+      "subcategory": null,
+      "vendor": null,
+      "url": null,
+      "prices": {}
     },
     {
       "strain": "Northern Lights",
       "quantity": 2,
-      "dateAdded": "2026-02-22T18:45:00.000Z"
+      "dateAdded": "2026-02-22T18:45:00.000Z",
+      "name": "Northern Lights",
+      "category": "flower",
+      "unit": "g",
+      "subcategory": null,
+      "vendor": null,
+      "url": null,
+      "prices": {}
     },
     {
       "strain": "Gorilla Glue",
       "quantity": 7,
-      "dateAdded": "2026-02-24T11:15:00.000Z"
+      "dateAdded": "2026-02-24T11:15:00.000Z",
+      "name": "Gorilla Glue",
+      "category": "flower",
+      "unit": "g",
+      "subcategory": null,
+      "vendor": null,
+      "url": null,
+      "prices": {}
     },
     {
       "strain": "Wedding Cake",
       "quantity": 3.5,
-      "dateAdded": "2026-02-26T16:00:00.000Z"
+      "dateAdded": "2026-02-26T16:00:00.000Z",
+      "name": "Wedding Cake",
+      "category": "flower",
+      "unit": "g",
+      "subcategory": null,
+      "vendor": null,
+      "url": null,
+      "prices": {}
     },
     {
       "strain": "Gelato",
       "quantity": 4,
-      "dateAdded": "2026-02-28T13:20:00.000Z"
+      "dateAdded": "2026-02-28T13:20:00.000Z",
+      "name": "Gelato",
+      "category": "flower",
+      "unit": "g",
+      "subcategory": null,
+      "vendor": null,
+      "url": null,
+      "prices": {}
     },
     {
       "strain": "Jack Herer",
       "quantity": 3.5,
-      "dateAdded": "2026-03-01T08:40:00.000Z"
+      "dateAdded": "2026-03-01T08:40:00.000Z",
+      "name": "Jack Herer",
+      "category": "flower",
+      "unit": "g",
+      "subcategory": null,
+      "vendor": null,
+      "url": null,
+      "prices": {}
     },
     {
       "strain": "Purple Punch",
       "quantity": 2.5,
-      "dateAdded": "2026-03-02T20:10:00.000Z"
+      "dateAdded": "2026-03-02T20:10:00.000Z",
+      "name": "Purple Punch",
+      "category": "flower",
+      "unit": "g",
+      "subcategory": null,
+      "vendor": null,
+      "url": null,
+      "prices": {}
     },
     {
       "strain": "Granddaddy Purple",
       "quantity": 3.5,
-      "dateAdded": "2026-03-03T15:30:00.000Z"
+      "dateAdded": "2026-03-03T15:30:00.000Z",
+      "name": "Granddaddy Purple",
+      "category": "flower",
+      "unit": "g",
+      "subcategory": null,
+      "vendor": null,
+      "url": null,
+      "prices": {}
     },
     {
       "strain": "Blue Dream",
       "quantity": 2.9,
-      "dateAdded": "2026-03-04T10:00:00.000Z"
+      "dateAdded": "2026-03-04T10:00:00.000Z",
+      "name": "Blue Dream",
+      "category": "flower",
+      "unit": "g",
+      "subcategory": null,
+      "vendor": null,
+      "url": null,
+      "prices": {}
     },
     {
       "strain": "White Widow",
       "quantity": 2,
-      "dateAdded": "2026-03-05T12:45:00.000Z"
+      "dateAdded": "2026-03-05T12:45:00.000Z",
+      "name": "White Widow",
+      "category": "flower",
+      "unit": "g",
+      "subcategory": null,
+      "vendor": null,
+      "url": null,
+      "prices": {}
     },
     {
       "strain": "Pineapple Express",
       "quantity": 3,
-      "dateAdded": "2026-03-06T09:15:00.000Z"
+      "dateAdded": "2026-03-06T09:15:00.000Z",
+      "name": "Pineapple Express",
+      "category": "flower",
+      "unit": "g",
+      "subcategory": null,
+      "vendor": null,
+      "url": null,
+      "prices": {}
+    },
+    {
+      "name": "Bliss Gummies",
+      "strain": "Bliss Gummies",
+      "quantity": 1080,
+      "category": "edibles",
+      "subcategory": "gummies",
+      "vendor": "Bliss",
+      "unit": "mg",
+      "prices": {},
+      "dateAdded": "2026-03-13T08:46:54.016Z",
+      "url": null
     }
   ],
   "history": [
@@ -216,6 +313,14 @@
       "strain": "Test Strain",
       "quantity": 1,
       "timestamp": "2026-03-08T04:44:01.082Z"
+    },
+    {
+      "action": "add",
+      "name": "Bliss Gummies",
+      "strain": "Bliss Gummies",
+      "quantity": 1080,
+      "unit": "mg",
+      "timestamp": "2026-03-13T08:46:54.016Z"
     }
   ]
 }

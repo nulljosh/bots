@@ -25,10 +25,17 @@ Delivery config (in skill config.json):
 - CustomerID: set from OAuth login on every order
 - Store coupons: pulled from menu endpoint (replaces 403ing /customer/coupons)
 
+## weedbot
+Multi-category product tracker for greenlandbotanicals.cc. See weedbot/CLAUDE.md.
+7 categories (flower, extracts, edibles, mushrooms, vapes, nicotine, accessories).
+CLI tool with JSON storage, Puppeteer scraping for live listings, WooCommerce login for account/orders.
+40 subprocess-based tests (node --test test.js).
+
 ## Structure
 bots/
 ├── fony/
 ├── food/
+├── weedbot/
 ├── index.html    (GitHub Pages landing)
 ├── README.md
 └── CLAUDE.md
