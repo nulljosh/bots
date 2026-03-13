@@ -1,4 +1,4 @@
-![Weedbot](../icon.svg)
+![Weedbot](icon.svg)
 # Weedbot
 ![version](https://img.shields.io/badge/version-v2.0.0-blue)
 
