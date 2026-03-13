@@ -1,7 +1,8 @@
-<div align="center">
-  <img src="icon.svg" width="120" />
-  <h1>bots</h1>
-</div>
+![bots](icon.svg)
+
+# bots
+
+![version](https://img.shields.io/badge/version-v1.1.0-blue)
 
 Monorepo for service automation bots.
 
