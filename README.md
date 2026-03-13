@@ -14,7 +14,8 @@ Monorepo for service automation bots.
 | Project | Description | Language |
 |---------|-------------|----------|
 | **fony** | AI phone calls via Twilio | Node.js |
-| **food** | Unified food API -- 8 chains: Dominos, Starbucks, McDonald's, Chipotle, Taco Bell, Pizza Hut, Firehouse Subs, Dairy Queen | Node.js |
+| **food** | Unified food API -- 7 working chains + Starbucks (blocked): Dominos, McDonald's, Chipotle, Taco Bell, Pizza Hut, Firehouse Subs, Dairy Queen | Node.js |
+| **starbucks** | Starbucks ordering bot (~~non-functional~~ -- needs mitmproxy credential intercept) | Node.js |
 | **weedbot** | Multi-category product tracker for greenlandbotanicals.cc -- 7 categories, Puppeteer scraping, WooCommerce checkout automation + account integration | Node.js |
 
 ## Roadmap
@@ -32,7 +33,7 @@ Monorepo for service automation bots.
 - [x] Weedbot remote checkout automation (WooCommerce)
 - [x] Weedbot confirmation page scraping
 - [x] Weedbot legacy strain field removal
-- [ ] Starbucks ordering (needs mitmproxy credential intercept)
+- [ ] ~~Starbucks ordering (needs mitmproxy credential intercept)~~
 - [x] Loyalty points + coupons tracking
 - [x] Store deals from menu endpoint
 - [x] Delivery instructions + tip config
