@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>weedbot</title>
+<meta name="view-transition" content="same-origin">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1/dist/fonts/geist-sans/style.min.css">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}:root{--bg-primary:#ffffff;--bg-secondary:#f5f5f7;--bg-tertiary:#ffffff;--text-primary:#111111;--text-secondary:#636366;--text-tertiary:#7b7b80;--text-quaternary:#98989d;--border:#d8d8dd;--link:#0a84ff;--accent:#0a84ff;--green:#16a34a;--amber:#d97706;--muted:#8e8e93}[data-theme="dark"]{--bg-primary:#000000;--bg-secondary:#111111;--bg-tertiary:#161616;--text-primary:#f5f5f7;--text-secondary:#b1b1b6;--text-tertiary:#98989d;--text-quaternary:#636366;--border:rgba(255,255,255,0.08);--link:#0a84ff;--accent:#0a84ff;--green:#30d158;--amber:#ff9f0a;--muted:#8e8e93}html{scroll-behavior:smooth}body{font-family:'Geist',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;font-weight:300;background:var(--bg-primary);color:var(--text-primary);line-height:1.6;min-height:100dvh;transition:background .3s,color .3s;-webkit-font-smoothing:antialiased}.container{max-width:920px;margin:0 auto;padding:4rem clamp(1.25rem,5vw,3rem) 3rem}header,.section,.footer{opacity:0;animation:fadeUp .8s cubic-bezier(.16,1,.3,1) forwards}.section:nth-of-type(1){animation-delay:.08s}.section:nth-of-type(2){animation-delay:.16s}.section:nth-of-type(3){animation-delay:.24s}.section:nth-of-type(4){animation-delay:.32s}.footer{animation-delay:.4s}header{margin-bottom:2.75rem}header .top-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;gap:1rem}h1{font-size:1.35rem;font-weight:600;letter-spacing:-.04em}.subtitle{color:var(--text-secondary);font-size:.97rem;line-height:1.75;max-width:42rem}.theme-toggle{background:var(--bg-secondary);border:none;cursor:pointer;padding:.42rem .68rem;border-radius:999px;color:var(--text-secondary);transition:color .2s,transform .2s cubic-bezier(.34,1.56,.64,1);display:flex;align-items:center}.theme-toggle:hover{color:var(--text-primary);transform:scale(1.05)}.theme-toggle svg{width:18px;height:18px}.section{margin-bottom:2.3rem}.label{font-size:.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--text-secondary);margin-bottom:1rem}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.75rem}.card{background:var(--bg-secondary);border:1px solid var(--border);border-radius:16px;padding:1rem 1.1rem;transition:transform .2s cubic-bezier(.34,1.56,.64,1),border-color .2s ease}.card:hover{transform:translateY(-2px);border-color:rgba(10,132,255,.35)}.card h3{font-size:.98rem;font-weight:560;color:var(--text-primary);margin-bottom:.34rem;letter-spacing:-.02em}.card p{color:var(--text-secondary);font-size:.92rem;line-height:1.6}.tag{display:inline-block;font-size:.67rem;letter-spacing:.06em;text-transform:uppercase;padding:3px 10px;border-radius:999px;background:var(--bg-tertiary);color:var(--text-quaternary);margin-right:.38rem;margin-top:.55rem;border:1px solid var(--border)}.tag.live{color:var(--green)}.tag.partial{color:var(--amber)}.list{display:grid;gap:.6rem}.list .item{background:var(--bg-secondary);border:1px solid var(--border);border-radius:14px;padding:.9rem 1rem;color:var(--text-secondary)}pre{white-space:pre-wrap;color:var(--text-secondary);font-size:.82rem;line-height:1.6}a{color:var(--link);text-decoration:none;position:relative}a::after{content:'';position:absolute;bottom:-1px;left:0;width:0;height:1px;background:var(--link);transition:width .3s cubic-bezier(.4,0,.2,1)}a:hover::after{width:100%}.footer{margin-top:2.7rem;padding-top:1.5rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.82rem}.footer a{color:var(--text-secondary);text-decoration:underline;text-underline-offset:2px}.footer a:hover{color:var(--text-primary)}.footer a::after{display:none}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<div class="top-row">
+<h1>weedbot</h1>
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+<svg id="sunIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+<svg id="moonIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+</button>
+</div>
+<p class="subtitle">Inventory and live listings.</p>
+</header>
+<div class="section">
+<p class="label">Overview</p>
+<div class="grid">
+<div class="card"><h3>Inventory</h3><p>Track local stock across flower, extracts, edibles, mushrooms, vapes, nicotine, and accessories.</p><span class="tag live">v2.0.0</span></div>
+<div class="card"><h3>Pricing</h3><p>Store per-gram and bag pricing, with logs, stats, and category summaries.</p><span class="tag">pricing</span><span class="tag">history</span></div>
+<div class="card"><h3>Remote account</h3><p>WooCommerce login, account view, remote order history, and live category browsing.</p><span class="tag">account</span><span class="tag">live browse</span></div>
+</div>
+</div>
+<div class="section">
+<p class="label">Commands</p>
+<div class="card"><pre>node index.js list
+node index.js browse flower --live
+node index.js find "kush"
+node index.js add "Blue Dream" 3.5
+node index.js price "OG Kush" bag 3.5 28
+node index.js account
+node index.js orders --remote</pre></div>
+</div>
+<div class="section">
+<p class="label">Links</p>
+<div class="list">
+<div class="item"><a href="../">Back to bots</a></div>
+<div class="item"><a href="./README.md">Readme</a></div>
+</div>
+</div>
+<div class="footer"><p>MIT 2026, Joshua Trommel</p></div>
+</div>
+<script>
+const themeToggle=document.getElementById('themeToggle');const sunIcon=document.getElementById('sunIcon');const moonIcon=document.getElementById('moonIcon');function getPreferredTheme(){const saved=localStorage.getItem('theme');if(saved)return saved;return window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}function setTheme(theme,animate){function apply(){if(theme==='dark'){document.documentElement.setAttribute('data-theme','dark');sunIcon.style.display='none';moonIcon.style.display='block'}else{document.documentElement.removeAttribute('data-theme');sunIcon.style.display='block';moonIcon.style.display='none'}localStorage.setItem('theme',theme)}if(animate&&document.startViewTransition){document.startViewTransition(apply)}else{apply()}}setTheme(getPreferredTheme(),false);themeToggle.addEventListener('click',()=>{const current=document.documentElement.hasAttribute('data-theme')?'dark':'light';setTheme(current==='dark'?'light':'dark',true)});window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',(e)=>{if(!localStorage.getItem('theme')){setTheme(e.matches?'dark':'light',true)}});
+</script>
+</body>
+</html>
