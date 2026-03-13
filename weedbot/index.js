@@ -242,10 +242,12 @@ function parseAddArgs(args, cfg) {
   let category = 'flower';
   let subcategory = null;
   let vendor = null;
+  let url = null;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--cat') category = args[++i] || '';
     else if (args[i] === '--sub') subcategory = args[++i] || '';
     else if (args[i] === '--vendor') vendor = args[++i] || '';
+    else if (args[i] === '--url') url = args[++i] || '';
     else filtered.push(args[i]);
   }
   const parsed = parseNameQtyArgs(filtered);
@@ -258,7 +260,7 @@ function parseAddArgs(args, cfg) {
     console.error(`Unknown subcategory "${subcategory}" for category "${category}"`);
     process.exit(1);
   }
-  return { ...parsed, category, subcategory, vendor };
+  return { ...parsed, category, subcategory, vendor, url };
 }
 
 function addItem(data, cfg, name, quantity, options = {}) {
@@ -270,6 +272,7 @@ function addItem(data, cfg, name, quantity, options = {}) {
     if (options.category) existing.category = category;
     if (options.subcategory !== undefined) existing.subcategory = options.subcategory;
     if (options.vendor !== undefined) existing.vendor = options.vendor;
+    if (options.url !== undefined) existing.url = options.url;
     if (!existing.unit) existing.unit = unit;
   } else {
     data.inventory.push({
@@ -281,7 +284,7 @@ function addItem(data, cfg, name, quantity, options = {}) {
       unit,
       prices: {},
       dateAdded: new Date().toISOString(),
-      url: null
+      url: options.url ?? null
     });
   }
   data.history.push({ action: 'add', name, quantity, unit, timestamp: new Date().toISOString() });
@@ -554,13 +557,14 @@ async function main() {
     case 'add': {
       const parsed = parseAddArgs(cleanRest, cfg);
       if (!parsed || parsed.rest.length) {
-        console.error('Usage: weed add <name> <qty> [--cat <category>] [--sub <subcategory>] [--vendor <vendor>]');
+        console.error('Usage: weed add <name> <qty> [--cat <category>] [--sub <subcategory>] [--vendor <vendor>] [--url <url>]');
         process.exit(1);
       }
       addItem(data, cfg, parsed.name, parsed.quantity, {
         category: parsed.category,
         subcategory: parsed.subcategory,
-        vendor: parsed.vendor
+        vendor: parsed.vendor,
+        url: parsed.url
       });
       break;
     }
