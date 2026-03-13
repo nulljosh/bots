@@ -15,7 +15,7 @@ Monorepo for service automation bots.
 |---------|-------------|----------|
 | **fony** | AI phone calls via Twilio | Node.js |
 | **food** | Unified food API -- 8 chains: Dominos, Starbucks, McDonald's, Chipotle, Taco Bell, Pizza Hut, Firehouse Subs, Dairy Queen | Node.js |
-| **weedbot** | Multi-category product tracker for greenlandbotanicals.cc -- 7 categories, Puppeteer scraping, WooCommerce account integration | Node.js |
+| **weedbot** | Multi-category product tracker for greenlandbotanicals.cc -- 7 categories, Puppeteer scraping, WooCommerce checkout automation + account integration | Node.js |
 
 ## Roadmap
 
@@ -29,6 +29,9 @@ Monorepo for service automation bots.
 - [x] Pizza Hut ordering (store finder, menu, cart, session-based auth)
 - [x] Firehouse Subs (RBI GraphQL store search, static menu)
 - [x] Dairy Queen (store search, static menu)
+- [x] Weedbot remote checkout automation (WooCommerce)
+- [x] Weedbot confirmation page scraping
+- [x] Weedbot legacy strain field removal
 - [ ] Starbucks ordering (needs mitmproxy credential intercept)
 - [x] Loyalty points + coupons tracking
 - [x] Store deals from menu endpoint

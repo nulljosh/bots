@@ -1,8 +1,8 @@
 ![Weedbot](icon.svg)
 # Weedbot
-![version](https://img.shields.io/badge/version-v2.0.0-blue)
+![version](https://img.shields.io/badge/version-v3.0.0-blue)
 
-Multi-category product tracker for greenlandbotanicals.cc. CLI interface with JSON storage, Puppeteer scraping, and WooCommerce account integration.
+Multi-category product tracker for greenlandbotanicals.cc. CLI interface with JSON storage, Puppeteer scraping, WooCommerce checkout automation, and account integration.
 
 ## Categories
 
@@ -37,7 +37,10 @@ node index.js delete "Blue Dream"               # remove entirely
 # Pricing and orders
 node index.js price "OG Kush" 11                # set per-gram price
 node index.js price "OG Kush" bag 3.5 28        # set bag price
-node index.js order "OG Kush" 7                 # place local order
+node index.js order "OG Kush" 7                 # remote checkout if URL set
+node index.js order "OG Kush" 7 --local         # local-only order
+node index.js confirm <url>                     # scrape order confirmation page
+node index.js confirm <order-id>                # look up by local/remote order ID
 
 # Account (greenlandbotanicals.cc)
 node index.js login                             # authenticate with .env creds
@@ -55,7 +58,7 @@ node index.js config session 0.3                # set session size
 ## Testing
 
 ```bash
-npm test            # 40 tests, all offline, uses temp sandboxes
+npm test            # 49 tests, all offline, uses temp sandboxes
 ```
 
 ## License
