@@ -53,7 +53,7 @@ const defaultConfig = {
 
 const defaultData = {
   inventory: [
-    { strain: 'OG Kush', quantity: 7, dateAdded: '2026-01-01T00:00:00.000Z' },
+    { name: 'OG Kush', quantity: 7, category: 'flower', unit: 'g', prices: {}, dateAdded: '2026-01-01T00:00:00.000Z' },
     {
       name: 'Bliss Gummies',
       quantity: 500,
@@ -257,7 +257,7 @@ describe('add command', () => {
     assertOk(result);
     assert.match(result.stdout, /Added 1\.5g of OG Kush\. Now have 8\.5g\./);
     const data = readJson(dir, 'data.json');
-    assert.equal(data.inventory.find(entry => (entry.name || entry.strain) === 'OG Kush').quantity, 8.5);
+    assert.equal(data.inventory.find(entry => entry.name === 'OG Kush').quantity, 8.5);
   });
 
   it('rejects unknown category', async () => {
@@ -282,7 +282,7 @@ describe('remove command', () => {
     assertOk(result);
     assert.match(result.stdout, /Removed 2g of OG Kush\. 5g remaining\./);
     const data = readJson(dir, 'data.json');
-    assert.equal(data.inventory.find(entry => (entry.name || entry.strain) === 'OG Kush').quantity, 5);
+    assert.equal(data.inventory.find(entry => entry.name === 'OG Kush').quantity, 5);
   });
 
   it('errors when not enough stock', async () => {
@@ -298,7 +298,7 @@ describe('remove command', () => {
     assertOk(result);
     assert.match(result.stdout, /Removed 7g of OG Kush\. Now out of stock\./);
     const data = readJson(dir, 'data.json');
-    assert.equal(data.inventory.some(entry => (entry.name || entry.strain) === 'OG Kush'), false);
+    assert.equal(data.inventory.some(entry => entry.name === 'OG Kush'), false);
   });
 });
 
@@ -322,7 +322,7 @@ describe('use command', () => {
     data.history.push({
       action: 'use',
       name: 'OG Kush',
-      strain: 'OG Kush',
+
       quantity: 0.5,
       unit: 'g',
       timestamp: '2026-01-03T00:00:00.000Z'
@@ -357,7 +357,6 @@ describe('find command', () => {
     const data = clone(defaultData);
     data.inventory.push({
       name: 'Kush Cartridge',
-      strain: 'Kush Cartridge',
       quantity: 1,
       category: 'vapes',
       subcategory: 'cartridge',
@@ -401,7 +400,6 @@ describe('fuzzy matching via CLI', () => {
     const data = clone(defaultData);
     data.inventory.push({
       name: 'OG King',
-      strain: 'OG King',
       quantity: 4,
       category: 'flower',
       subcategory: 'hybrid',
@@ -427,7 +425,7 @@ describe('price command', () => {
     assertOk(result);
     assert.match(result.stdout, /OG Kush: \$11\.00\/g/);
     const data = readJson(dir, 'data.json');
-    assert.equal(data.inventory.find(entry => (entry.name || entry.strain) === 'OG Kush').prices.perGram, 11);
+    assert.equal(data.inventory.find(entry => entry.name === 'OG Kush').prices.perGram, 11);
   });
 
   it('sets bag price', async () => {
@@ -436,7 +434,7 @@ describe('price command', () => {
     assertOk(result);
     assert.match(result.stdout, /OG Kush: 3\.5g bag = \$28\.00/);
     const data = readJson(dir, 'data.json');
-    assert.equal(data.inventory.find(entry => (entry.name || entry.strain) === 'OG Kush').prices.bags['3.5'], 28);
+    assert.equal(data.inventory.find(entry => entry.name === 'OG Kush').prices.bags['3.5'], 28);
   });
 });
 
@@ -465,9 +463,9 @@ describe('order and orders commands', () => {
 
   it('shows local orders with optional limit', async () => {
     const orders = [
-      { id: 1, name: 'OG Kush', strain: 'OG Kush', quantity: 1, unit: 'g', price: 10, status: 'pending', placedAt: '2026-01-01T00:00:00.000Z' },
-      { id: 2, name: 'Bliss Gummies', strain: 'Bliss Gummies', quantity: 100, unit: 'mg', price: null, status: 'pending', placedAt: '2026-01-02T00:00:00.000Z' },
-      { id: 3, name: 'Live Rosin', strain: 'Live Rosin', quantity: 2, unit: 'g', price: 40, status: 'pending', placedAt: '2026-01-03T00:00:00.000Z' }
+      { id: 1, name: 'OG Kush', quantity: 1, unit: 'g', price: 10, status: 'pending', placedAt: '2026-01-01T00:00:00.000Z' },
+      { id: 2, name: 'Bliss Gummies', quantity: 100, unit: 'mg', price: null, status: 'pending', placedAt: '2026-01-02T00:00:00.000Z' },
+      { id: 3, name: 'Live Rosin', quantity: 2, unit: 'g', price: 40, status: 'pending', placedAt: '2026-01-03T00:00:00.000Z' }
     ];
     const dir = createSandbox({ orders });
     const result = await runCli(dir, ['orders', '2']);
@@ -483,12 +481,12 @@ describe('stats command', () => {
   it('shows overall stats', async () => {
     const data = clone(defaultData);
     data.history = [
-      { action: 'add', name: 'OG Kush', strain: 'OG Kush', quantity: 7, unit: 'g', timestamp: '2026-01-01T00:00:00.000Z' },
-      { action: 'add', name: 'Bliss Gummies', strain: 'Bliss Gummies', quantity: 500, unit: 'mg', timestamp: '2026-01-02T00:00:00.000Z' },
-      { action: 'use', name: 'OG Kush', strain: 'OG Kush', quantity: 0.5, unit: 'g', timestamp: '2026-01-03T00:00:00.000Z' }
+      { action: 'add', name: 'OG Kush', quantity: 7, unit: 'g', timestamp: '2026-01-01T00:00:00.000Z' },
+      { action: 'add', name: 'Bliss Gummies', quantity: 500, unit: 'mg', timestamp: '2026-01-02T00:00:00.000Z' },
+      { action: 'use', name: 'OG Kush', quantity: 0.5, unit: 'g', timestamp: '2026-01-03T00:00:00.000Z' }
     ];
     const orders = [
-      { id: 1, name: 'OG Kush', strain: 'OG Kush', quantity: 2, unit: 'g', price: 20, status: 'pending', placedAt: '2026-01-04T00:00:00.000Z' }
+      { id: 1, name: 'OG Kush', quantity: 2, unit: 'g', price: 20, status: 'pending', placedAt: '2026-01-04T00:00:00.000Z' }
     ];
     const dir = createSandbox({ data, orders });
     const result = await runCli(dir, ['stats']);
@@ -507,8 +505,8 @@ describe('stats command', () => {
   it('shows per-category stats', async () => {
     const data = clone(defaultData);
     data.history = [
-      { action: 'add', name: 'OG Kush', strain: 'OG Kush', quantity: 7, unit: 'g', timestamp: '2026-01-01T00:00:00.000Z' },
-      { action: 'use', name: 'OG Kush', strain: 'OG Kush', quantity: 1, unit: 'g', timestamp: '2026-01-02T00:00:00.000Z' }
+      { action: 'add', name: 'OG Kush', quantity: 7, unit: 'g', timestamp: '2026-01-01T00:00:00.000Z' },
+      { action: 'use', name: 'OG Kush', quantity: 1, unit: 'g', timestamp: '2026-01-02T00:00:00.000Z' }
     ];
     const dir = createSandbox({ data });
     const result = await runCli(dir, ['stats', 'flower']);
@@ -524,8 +522,8 @@ describe('log command', () => {
   it('shows history', async () => {
     const data = clone(defaultData);
     data.history = [
-      { action: 'add', name: 'OG Kush', strain: 'OG Kush', quantity: 7, unit: 'g', timestamp: '2026-01-01T00:00:00.000Z' },
-      { action: 'use', name: 'OG Kush', strain: 'OG Kush', quantity: 0.5, unit: 'g', timestamp: '2026-01-02T00:00:00.000Z' }
+      { action: 'add', name: 'OG Kush', quantity: 7, unit: 'g', timestamp: '2026-01-01T00:00:00.000Z' },
+      { action: 'use', name: 'OG Kush', quantity: 0.5, unit: 'g', timestamp: '2026-01-02T00:00:00.000Z' }
     ];
     const dir = createSandbox({ data });
     const result = await runCli(dir, ['log']);
@@ -538,9 +536,9 @@ describe('log command', () => {
   it('limits history entries', async () => {
     const data = clone(defaultData);
     data.history = [
-      { action: 'add', name: 'OG Kush', strain: 'OG Kush', quantity: 7, unit: 'g', timestamp: '2026-01-01T00:00:00.000Z' },
-      { action: 'use', name: 'OG Kush', strain: 'OG Kush', quantity: 0.5, unit: 'g', timestamp: '2026-01-02T00:00:00.000Z' },
-      { action: 'add', name: 'Bliss Gummies', strain: 'Bliss Gummies', quantity: 500, unit: 'mg', timestamp: '2026-01-03T00:00:00.000Z' }
+      { action: 'add', name: 'OG Kush', quantity: 7, unit: 'g', timestamp: '2026-01-01T00:00:00.000Z' },
+      { action: 'use', name: 'OG Kush', quantity: 0.5, unit: 'g', timestamp: '2026-01-02T00:00:00.000Z' },
+      { action: 'add', name: 'Bliss Gummies', quantity: 500, unit: 'mg', timestamp: '2026-01-03T00:00:00.000Z' }
     ];
     const dir = createSandbox({ data });
     const result = await runCli(dir, ['log', '2']);
@@ -582,10 +580,118 @@ describe('config command', () => {
 
 describe('migration', () => {
   it('normalizes old strain-only items on load', async () => {
-    const dir = createSandbox();
+    const data = {
+      inventory: [
+        { strain: 'Purple Punch', quantity: 3, dateAdded: '2026-01-01T00:00:00.000Z' }
+      ],
+      history: []
+    };
+    const dir = createSandbox({ data });
     const result = await runCli(dir, ['list']);
     assertOk(result);
-    assert.match(result.stdout, /OG Kush: 7 g/);
+    assert.match(result.stdout, /Purple Punch: 3 g/);
     assert.match(result.stdout, /=== FLOWER ===/);
+    // After a write operation, the normalized data should be persisted
+    await runCli(dir, ['add', 'Purple', 'Punch', '1']);
+    const saved = readJson(dir, 'data.json');
+    const item = saved.inventory.find(e => e.name === 'Purple Punch');
+    assert.ok(item, 'Purple Punch should exist in saved data');
+    assert.equal(item.strain, undefined, 'strain field should not exist after migration');
+  });
+});
+
+describe('add --url flag', () => {
+  it('persists url in data.json', async () => {
+    const dir = createSandbox();
+    const result = await runCli(dir, ['add', 'Budget', 'Oz', '28', '--url', 'https://greenlandbotanicals.cc/product/budget-oz/']);
+    assertOk(result);
+    const data = readJson(dir, 'data.json');
+    const item = data.inventory.find(e => e.name === 'Budget Oz');
+    assert.equal(item.url, 'https://greenlandbotanicals.cc/product/budget-oz/');
+    assert.equal(item.quantity, 28);
+  });
+
+  it('updates url on existing item', async () => {
+    const dir = createSandbox();
+    const result = await runCli(dir, ['add', 'OG', 'Kush', '1', '--url', 'https://greenlandbotanicals.cc/product/og-kush/']);
+    assertOk(result);
+    const data = readJson(dir, 'data.json');
+    const item = data.inventory.find(e => e.name === 'OG Kush');
+    assert.equal(item.url, 'https://greenlandbotanicals.cc/product/og-kush/');
+  });
+});
+
+describe('order --local flag', () => {
+  it('places local-only order with --local', async () => {
+    const data = clone(defaultData);
+    data.inventory[0].url = 'https://greenlandbotanicals.cc/product/og-kush/';
+    const dir = createSandbox({ data });
+    const result = await runCli(dir, ['order', 'OG', 'Kush', '2', '--local']);
+    assertOk(result);
+    assert.match(result.stdout, /Order placed: 2g of OG Kush/);
+    assert.match(result.stdout, /Status: pending/);
+    const orders = readJson(dir, 'orders.json');
+    assert.equal(orders.length, 1);
+    assert.equal(orders[0].status, 'pending');
+  });
+
+  it('falls back to local when no url set', async () => {
+    const dir = createSandbox();
+    const result = await runCli(dir, ['order', 'OG', 'Kush', '1']);
+    assertOk(result);
+    assert.match(result.stdout, /Order placed: 1g of OG Kush/);
+    assert.match(result.stdout, /local-only: no product URL set/);
+  });
+});
+
+describe('confirm command', () => {
+  it('errors with no arguments', async () => {
+    const dir = createSandbox();
+    const result = await runCli(dir, ['confirm']);
+    assertFail(result);
+    assert.match(result.stderr, /Usage: weed confirm/);
+  });
+
+  it('errors when order id not found', async () => {
+    const dir = createSandbox();
+    const result = await runCli(dir, ['confirm', '99999']);
+    assertFail(result);
+    assert.match(result.stderr, /No confirmation URL found/);
+  });
+
+  it('looks up confirmation URL from local order', async () => {
+    const orders = [{
+      id: 12345,
+      name: 'Budget Oz',
+      quantity: 1,
+      unit: 'g',
+      price: 60,
+      status: 'confirmed',
+      remoteOrderId: '6869',
+      confirmationUrl: 'https://greenlandbotanicals.cc/checkout/order-received/84429/',
+      placedAt: '2026-03-13T00:00:00.000Z'
+    }];
+    const dir = createSandbox({ orders });
+    // This will fail because Puppeteer can't reach the URL in test, but it proves the lookup works
+    const result = await runCli(dir, ['confirm', '6869']);
+    // Should attempt to scrape (not "No confirmation URL found")
+    assert.doesNotMatch(result.stderr, /No confirmation URL found/);
+  });
+});
+
+describe('no strain field in output', () => {
+  it('find output has no strain field', async () => {
+    const dir = createSandbox();
+    const result = await runCli(dir, ['find', 'OG']);
+    assertOk(result);
+    assert.doesNotMatch(result.stdout, /strain/i);
+  });
+
+  it('saved data has no strain field after add', async () => {
+    const dir = createSandbox();
+    await runCli(dir, ['add', 'New', 'Strain', '5']);
+    const data = readJson(dir, 'data.json');
+    const item = data.inventory.find(e => e.name === 'New Strain');
+    assert.equal(item.strain, undefined);
   });
 });

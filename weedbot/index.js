@@ -81,7 +81,7 @@ function normalizeItem(item, cfg) {
     migrated.vendor = null;
     migrated.url = null;
   }
-  migrated.name = migrated.name || migrated.strain || 'Unknown Item';
+  migrated.name = migrated.name || 'Unknown Item';
   migrated.category = migrated.category || 'flower';
   migrated.subcategory = migrated.subcategory ?? null;
   migrated.vendor = migrated.vendor ?? null;
@@ -89,7 +89,7 @@ function normalizeItem(item, cfg) {
   migrated.unit = migrated.unit || getDefaultUnit(cfg, migrated.category);
   migrated.prices = migrated.prices || {};
   migrated.dateAdded = migrated.dateAdded || new Date().toISOString();
-  if (!migrated.strain) migrated.strain = migrated.name;
+  delete migrated.strain;
   return migrated;
 }
 function loadData(cfg) {
@@ -159,11 +159,11 @@ function resolveItem(data, nameArgs) {
 function round1(n) { return Math.round(n * 10) / 10; }
 function formatPrice(n) { return n != null ? `$${n.toFixed(2)}` : '—'; }
 function formatQty(item) { return `${item.quantity}${item.unit}`; }
-function getDisplayName(obj) { return obj.name || obj.strain || 'Unknown Item'; }
+function getDisplayName(obj) { return obj.name || 'Unknown Item'; }
 function getHistoryUnit(entry, data) {
   if (entry.unit) return entry.unit;
   const name = getDisplayName(entry).toLowerCase();
-  const item = data.inventory.find(i => i.name.toLowerCase() === name || i.strain.toLowerCase() === name);
+  const item = data.inventory.find(i => i.name.toLowerCase() === name);
   return item?.unit || 'g';
 }
 function getPrice(item, qty) {
@@ -217,9 +217,10 @@ function printUsage() {
   console.log('  weed delete <name>                     - remove item');
   console.log('  weed price <name> <$/g>                - set per-gram price');
   console.log('  weed price <name> bag <g> <$>          - set bag price');
-  console.log('  weed order <name> <qty>                - place order (logged locally)');
+  console.log('  weed order <name> <qty> [--local]       - place order (remote if URL set, --local to skip)');
   console.log('  weed orders [n]                        - view local order history');
   console.log('  weed orders --remote [id]              - view remote order history/details');
+  console.log('  weed confirm <url|order-id>            - scrape order confirmation page');
   console.log('  weed login                             - create saved web session');
   console.log('  weed account                           - show remote account dashboard');
   console.log('  weed config session <qty>              - set default session size');
@@ -320,16 +321,33 @@ function setPrice(data, itemArgs) {
     console.log(`${item.name}: ${formatPrice(price)}/g`);
   }
 }
-function placeOrder(data, itemArgs) {
-  const parsed = parseNameQtyArgs(itemArgs);
-  if (!parsed || parsed.rest.length) { console.error('Usage: weed order <name> <qty>'); process.exit(1); }
-  const item = resolveItem(data, [parsed.name]);
-  const price = getPrice(item, parsed.quantity);
+function printReceipt(receipt) {
+  console.log('--- ORDER RECEIPT ---');
+  if (receipt.orderNumber) console.log(`  Order #${receipt.orderNumber}`);
+  if (receipt.date) console.log(`  Date: ${receipt.date}`);
+  if (receipt.email) console.log(`  Email: ${receipt.email}`);
+  if (receipt.items?.length) {
+    receipt.items.forEach(item => {
+      console.log(`  ${item.name} x${item.qty} ${item.total}`);
+    });
+  }
+  if (receipt.subtotal) console.log(`  Subtotal: ${receipt.subtotal}`);
+  if (receipt.shipping) console.log(`  Shipping: ${receipt.shipping}`);
+  if (receipt.total) console.log(`  Total: ${receipt.total}`);
+  if (receipt.paymentMethod) console.log(`  Payment: ${receipt.paymentMethod}`);
+  if (receipt.deliveryDate) console.log(`  Delivery: ${receipt.deliveryDate}`);
+  if (receipt.deliveryTime) console.log(`  Time: ${receipt.deliveryTime}`);
+  if (receipt.oosPreference) console.log(`  OOS Preference: ${receipt.oosPreference}`);
+  if (receipt.confirmationUrl) console.log(`  URL: ${receipt.confirmationUrl}`);
+  console.log('--------------------');
+}
+
+function placeOrderLocal(data, item, quantity) {
+  const price = getPrice(item, quantity);
   const order = {
     id: Date.now(),
-    strain: item.strain || item.name,
     name: item.name,
-    quantity: parsed.quantity,
+    quantity,
     unit: item.unit,
     price,
     status: 'pending',
@@ -338,11 +356,55 @@ function placeOrder(data, itemArgs) {
   const orders = loadOrders();
   orders.push(order);
   saveOrders(orders);
-  console.log(`Order placed: ${parsed.quantity}${item.unit} of ${item.name}`);
+  console.log(`Order placed: ${quantity}${item.unit} of ${item.name}`);
   if (price != null) console.log(`  Price: ${formatPrice(price)}`);
   else console.log('  Price: not set for this quantity');
   console.log('  Status: pending');
   console.log(`  Order ID: ${order.id}`);
+  return order;
+}
+
+async function placeOrder(data, itemArgs) {
+  const localOnly = itemArgs.includes('--local');
+  const filtered = itemArgs.filter(a => a !== '--local');
+  const parsed = parseNameQtyArgs(filtered);
+  if (!parsed || parsed.rest.length) { console.error('Usage: weed order <name> <qty> [--local]'); process.exit(1); }
+  const item = resolveItem(data, [parsed.name]);
+
+  if (localOnly || !item.url) {
+    placeOrderLocal(data, item, parsed.quantity);
+    if (!localOnly && !item.url) console.log('  (local-only: no product URL set. Use --url on add to enable remote checkout)');
+    return;
+  }
+
+  // Remote checkout
+  console.log(`Placing remote order: ${parsed.quantity}x ${item.name}...`);
+  try {
+    const { placeRemoteOrder } = await import('./scraper.js');
+    const receipt = await placeRemoteOrder(item.url, parsed.quantity);
+    printReceipt(receipt);
+
+    // Save order locally with confirmation
+    const price = getPrice(item, parsed.quantity);
+    const order = {
+      id: Date.now(),
+      name: item.name,
+      quantity: parsed.quantity,
+      unit: item.unit,
+      price,
+      status: 'confirmed',
+      remoteOrderId: receipt.orderNumber,
+      confirmationUrl: receipt.confirmationUrl,
+      placedAt: new Date().toISOString()
+    };
+    const orders = loadOrders();
+    orders.push(order);
+    saveOrders(orders);
+  } catch (err) {
+    console.error('Remote order failed: ' + err.message);
+    console.log('Falling back to local order...');
+    placeOrderLocal(data, item, parsed.quantity);
+  }
 }
 function viewOrders(limit) {
   const orders = loadOrders();
@@ -352,7 +414,7 @@ function viewOrders(limit) {
   list.forEach(o => {
     const d = new Date(o.placedAt).toLocaleDateString();
     const p = o.price != null ? formatPrice(o.price) : '—';
-    const name = o.name || o.strain;
+    const name = o.name || 'Unknown Item';
     const unit = o.unit || 'g';
     console.log(`  [${o.status.toUpperCase()}] ${d} - ${o.quantity}${unit} ${name} @ ${p}`);
   });
@@ -370,7 +432,7 @@ function useItem(data, itemArgs, qty) {
   }
   if (item.quantity < qty) { console.error(`Not enough. Have ${item.quantity}${item.unit}, session size is ${qty}${item.unit}.`); process.exit(1); }
   item.quantity = round1(item.quantity - qty);
-  data.history.push({ action: 'use', name: item.name, strain: item.strain, quantity: qty, unit: item.unit, timestamp: new Date().toISOString() });
+  data.history.push({ action: 'use', name: item.name, quantity: qty, unit: item.unit, timestamp: new Date().toISOString() });
   if (item.quantity === 0) {
     data.inventory = data.inventory.filter(i => i !== item);
     console.log(`Used ${qty}${item.unit} of ${item.name}. Now out of stock.`);
@@ -383,7 +445,7 @@ function removeStock(data, itemArgs, quantity) {
   const item = resolveItem(data, itemArgs);
   if (item.quantity < quantity) { console.error(`Not enough. Have ${item.quantity}${item.unit}, tried to remove ${quantity}${item.unit}.`); process.exit(1); }
   item.quantity = round1(item.quantity - quantity);
-  data.history.push({ action: 'remove', name: item.name, strain: item.strain, quantity, unit: item.unit, timestamp: new Date().toISOString() });
+  data.history.push({ action: 'remove', name: item.name, quantity, unit: item.unit, timestamp: new Date().toISOString() });
   if (item.quantity === 0) {
     data.inventory = data.inventory.filter(i => i !== item);
     console.log(`Removed ${quantity}${item.unit} of ${item.name}. Now out of stock.`);
@@ -395,7 +457,7 @@ function removeStock(data, itemArgs, quantity) {
 function deleteItem(data, itemArgs) {
   const item = resolveItem(data, itemArgs);
   data.inventory = data.inventory.filter(i => i !== item);
-  data.history.push({ action: 'delete', name: item.name, strain: item.strain, quantity: item.quantity, unit: item.unit, timestamp: new Date().toISOString() });
+  data.history.push({ action: 'delete', name: item.name, quantity: item.quantity, unit: item.unit, timestamp: new Date().toISOString() });
   saveData(data);
   console.log(`Deleted ${item.name} (had ${item.quantity}${item.unit}).`);
 }
@@ -596,9 +658,29 @@ async function main() {
       setPrice(data, cleanRest);
       break;
     case 'order':
-      if (!cleanRest.length) { console.error('Usage: weed order <name> <qty>'); process.exit(1); }
-      placeOrder(data, cleanRest);
+      if (!cleanRest.length) { console.error('Usage: weed order <name> <qty> [--local]'); process.exit(1); }
+      await placeOrder(data, cleanRest);
       break;
+    case 'confirm': {
+      if (!cleanRest.length) { console.error('Usage: weed confirm <url|order-id>'); process.exit(1); }
+      const target = cleanRest.join(' ');
+      let confirmUrl;
+      if (target.startsWith('http')) {
+        confirmUrl = target;
+      } else {
+        const orders = loadOrders();
+        const match = orders.find(o => String(o.id) === target || String(o.remoteOrderId) === target);
+        if (!match || !match.confirmationUrl) {
+          console.error(`No confirmation URL found for order: ${target}`);
+          process.exit(1);
+        }
+        confirmUrl = match.confirmationUrl;
+      }
+      const { scrapeConfirmation } = await import('./scraper.js');
+      const receipt = await scrapeConfirmation(confirmUrl);
+      printReceipt(receipt);
+      break;
+    }
     case 'orders':
       if (cleanRest[0] === '--remote') {
         const id = cleanRest[1];

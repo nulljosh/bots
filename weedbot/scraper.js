@@ -123,6 +123,221 @@ export async function fetchOrderDetails(orderId) {
   await browser.close();
 }
 
+export async function scrapeConfirmation(url) {
+  const cookies = loadCookies();
+  const browser = await puppeteer.launch({ headless: true });
+  const page = await browser.newPage();
+  if (cookies) await page.setCookie(...cookies);
+
+  await page.goto(url, { waitUntil: 'networkidle2' });
+
+  const receipt = await page.evaluate(() => {
+    const text = sel => document.querySelector(sel)?.innerText?.trim() || '';
+
+    const orderNumber = text('.woocommerce-order-overview__order strong') ||
+      (document.querySelector('.woocommerce-order-overview__order')?.innerText?.match(/(\d+)/) || [])[1] || '';
+    const date = text('.woocommerce-order-overview__date strong') ||
+      (document.querySelector('.woocommerce-order-overview__date')?.innerText?.match(/:\s*(.+)/) || [])[1] || '';
+    const email = text('.woocommerce-order-overview__email strong') ||
+      (document.querySelector('.woocommerce-order-overview__email')?.innerText?.match(/:\s*(.+)/) || [])[1] || '';
+    const total = text('.woocommerce-order-overview__total strong .woocommerce-Price-amount') ||
+      text('.woocommerce-order-overview__total strong') || '';
+    const paymentMethod = text('.woocommerce-order-overview__payment-method strong') ||
+      (document.querySelector('.woocommerce-order-overview__payment-method')?.innerText?.match(/:\s*(.+)/) || [])[1] || '';
+
+    const items = [];
+    document.querySelectorAll('.woocommerce-table--order-details tbody .order_item, .woocommerce-table--order-details tbody tr').forEach(row => {
+      const name = row.querySelector('.product-name')?.childNodes[0]?.textContent?.trim() || row.querySelector('.product-name')?.innerText?.trim() || '';
+      const qtyMatch = row.querySelector('.product-name .product-quantity')?.innerText?.match(/(\d+)/) || [];
+      const qty = parseInt(qtyMatch[1], 10) || 1;
+      const itemTotal = row.querySelector('.product-total .woocommerce-Price-amount')?.innerText?.trim() ||
+        row.querySelector('.product-total')?.innerText?.trim() || '';
+      if (name) items.push({ name: name.replace(/\s*×\s*\d+$/, '').trim(), qty, total: itemTotal });
+    });
+
+    const subtotal = text('.woocommerce-table--order-details tfoot tr:first-child td') || '';
+    const shipping = text('.woocommerce-table--order-details tfoot .shipping td') ||
+      (() => {
+        const rows = document.querySelectorAll('.woocommerce-table--order-details tfoot tr');
+        for (const r of rows) {
+          const label = r.querySelector('th')?.innerText?.trim() || '';
+          if (/shipping/i.test(label)) return r.querySelector('td')?.innerText?.trim() || '';
+        }
+        return '';
+      })();
+
+    let deliveryDate = '';
+    let deliveryTime = '';
+    let oosPreference = '';
+    document.querySelectorAll('.woocommerce-table--order-details tfoot tr, .woocommerce-order-overview li').forEach(el => {
+      const label = (el.querySelector('th') || el.querySelector('strong'))?.innerText?.trim().toLowerCase() || '';
+      const val = el.querySelector('td')?.innerText?.trim() || el.querySelector('span')?.innerText?.trim() || '';
+      if (label.includes('delivery date') || label.includes('date')) {
+        if (!deliveryDate && val && /\w+ \d+/.test(val)) deliveryDate = val;
+      }
+      if (label.includes('time')) deliveryTime = val;
+      if (label.includes('out of stock') || label.includes('oos')) oosPreference = val;
+    });
+
+    return { orderNumber, date, email, total, paymentMethod, shipping, deliveryDate, deliveryTime, items, subtotal, oosPreference };
+  });
+
+  await browser.close();
+  return receipt;
+}
+
+export async function placeRemoteOrder(productUrl, quantity, options = {}) {
+  const cookies = loadCookies();
+  if (!cookies) { throw new Error('Not logged in. Run: weed login'); }
+
+  const browser = await puppeteer.launch({ headless: true });
+  const page = await browser.newPage();
+  await page.setCookie(...cookies);
+
+  // Navigate to product page and add to cart
+  await page.goto(productUrl, { waitUntil: 'networkidle2' });
+
+  // Set quantity
+  const qtyInput = await page.$('input.qty, input[name="quantity"]');
+  if (qtyInput) {
+    await qtyInput.click({ clickCount: 3 });
+    await qtyInput.type(String(quantity));
+  }
+
+  // Click add to cart
+  const addBtn = await page.$('button.single_add_to_cart_button, button[name="add-to-cart"]');
+  if (!addBtn) { await browser.close(); throw new Error('Add to cart button not found on product page'); }
+  await addBtn.click();
+  await page.waitForNavigation({ waitUntil: 'networkidle2' }).catch(() => {});
+  // Some WooCommerce themes use AJAX add-to-cart; wait a moment then navigate
+  await new Promise(r => setTimeout(r, 2000));
+
+  // Navigate to checkout
+  const rootUrl = getRootUrl();
+  await page.goto(rootUrl + '/checkout/', { waitUntil: 'networkidle2' });
+
+  // Fill billing fields from env/options
+  const billing = {
+    first_name: (options.name || process.env.GB_NAME || '').split(' ')[0],
+    last_name: (options.name || process.env.GB_NAME || '').split(' ').slice(1).join(' '),
+    address_1: options.address || process.env.GB_ADDRESS || '',
+    city: options.city || process.env.GB_CITY || '',
+    state: options.province || process.env.GB_PROVINCE || '',
+    postcode: options.postal || process.env.GB_POSTAL || '',
+    phone: options.phone || process.env.GB_PHONE || '',
+    email: options.email || process.env.GB_EMAIL || ''
+  };
+
+  for (const [field, value] of Object.entries(billing)) {
+    const sel = `#billing_${field}`;
+    const el = await page.$(sel);
+    if (el && value) {
+      await el.click({ clickCount: 3 });
+      await el.type(value);
+    }
+  }
+
+  // Select province from dropdown if present
+  if (billing.state) {
+    const stateSelect = await page.$('#billing_state');
+    if (stateSelect) {
+      const tagName = await page.evaluate(el => el.tagName, stateSelect);
+      if (tagName === 'SELECT') {
+        await page.select('#billing_state', billing.state);
+      }
+    }
+  }
+
+  // Select Cash on Delivery payment
+  const codRadio = await page.$('#payment_method_cod, input[value="cod"]');
+  if (codRadio) await codRadio.click();
+
+  // Select delivery date/time if available
+  if (options.deliveryDate) {
+    const dateInput = await page.$('input[name*="delivery_date"], #delivery_date');
+    if (dateInput) { await dateInput.click({ clickCount: 3 }); await dateInput.type(options.deliveryDate); }
+  }
+  if (options.deliveryTime) {
+    const timeSelect = await page.$('select[name*="delivery_time"], #delivery_time');
+    if (timeSelect) await page.select(timeSelect, options.deliveryTime);
+  }
+
+  // Wait for any AJAX updates to finish
+  await new Promise(r => setTimeout(r, 2000));
+
+  // Place order
+  const placeBtn = await page.$('#place_order, button.wc-block-components-checkout-place-order-button');
+  if (!placeBtn) { await browser.close(); throw new Error('Place order button not found'); }
+  await placeBtn.click();
+
+  // Wait for confirmation page
+  try {
+    await page.waitForFunction(
+      () => window.location.href.includes('/order-received/') || window.location.href.includes('/checkout/order-received/'),
+      { timeout: 30000 }
+    );
+  } catch {
+    const currentUrl = page.url();
+    await browser.close();
+    throw new Error('Order confirmation page not reached. Current URL: ' + currentUrl);
+  }
+
+  const confirmationUrl = page.url();
+
+  // Scrape the confirmation page
+  const receipt = await page.evaluate(() => {
+    const text = sel => document.querySelector(sel)?.innerText?.trim() || '';
+
+    const orderNumber = text('.woocommerce-order-overview__order strong') ||
+      (document.querySelector('.woocommerce-order-overview__order')?.innerText?.match(/(\d+)/) || [])[1] || '';
+    const date = text('.woocommerce-order-overview__date strong') ||
+      (document.querySelector('.woocommerce-order-overview__date')?.innerText?.match(/:\s*(.+)/) || [])[1] || '';
+    const email = text('.woocommerce-order-overview__email strong') ||
+      (document.querySelector('.woocommerce-order-overview__email')?.innerText?.match(/:\s*(.+)/) || [])[1] || '';
+    const total = text('.woocommerce-order-overview__total strong .woocommerce-Price-amount') ||
+      text('.woocommerce-order-overview__total strong') || '';
+    const paymentMethod = text('.woocommerce-order-overview__payment-method strong') ||
+      (document.querySelector('.woocommerce-order-overview__payment-method')?.innerText?.match(/:\s*(.+)/) || [])[1] || '';
+
+    const items = [];
+    document.querySelectorAll('.woocommerce-table--order-details tbody .order_item, .woocommerce-table--order-details tbody tr').forEach(row => {
+      const name = row.querySelector('.product-name')?.childNodes[0]?.textContent?.trim() || row.querySelector('.product-name')?.innerText?.trim() || '';
+      const qtyMatch = row.querySelector('.product-name .product-quantity')?.innerText?.match(/(\d+)/) || [];
+      const qty = parseInt(qtyMatch[1], 10) || 1;
+      const itemTotal = row.querySelector('.product-total .woocommerce-Price-amount')?.innerText?.trim() ||
+        row.querySelector('.product-total')?.innerText?.trim() || '';
+      if (name) items.push({ name: name.replace(/\s*×\s*\d+$/, '').trim(), qty, total: itemTotal });
+    });
+
+    const subtotal = text('.woocommerce-table--order-details tfoot tr:first-child td') || '';
+    const shipping = (() => {
+      const rows = document.querySelectorAll('.woocommerce-table--order-details tfoot tr');
+      for (const r of rows) {
+        const label = r.querySelector('th')?.innerText?.trim() || '';
+        if (/shipping/i.test(label)) return r.querySelector('td')?.innerText?.trim() || '';
+      }
+      return '';
+    })();
+
+    let deliveryDate = '';
+    let deliveryTime = '';
+    let oosPreference = '';
+    document.querySelectorAll('.woocommerce-table--order-details tfoot tr').forEach(el => {
+      const label = el.querySelector('th')?.innerText?.trim().toLowerCase() || '';
+      const val = el.querySelector('td')?.innerText?.trim() || '';
+      if (label.includes('delivery date')) deliveryDate = val;
+      if (label.includes('time')) deliveryTime = val;
+      if (label.includes('out of stock') || label.includes('oos')) oosPreference = val;
+    });
+
+    return { orderNumber, date, email, total, paymentMethod, shipping, deliveryDate, deliveryTime, items, subtotal, oosPreference };
+  });
+
+  receipt.confirmationUrl = confirmationUrl;
+  await browser.close();
+  return receipt;
+}
+
 export async function scrapeLiveCategory(category) {
   const cookies = loadCookies();
   const browser = await puppeteer.launch({ headless: true });

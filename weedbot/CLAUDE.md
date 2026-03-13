@@ -1,6 +1,6 @@
 # weedbot -- Agent Notes
 
-Multi-category product tracker. CLI tool, JSON storage. v2.0.0.
+Multi-category product tracker with remote checkout. CLI tool, JSON storage. v3.0.0.
 
 ## Commands
 
@@ -12,15 +12,16 @@ Multi-category product tracker. CLI tool, JSON storage. v2.0.0.
 | `stats [category]` | Summary stats, optionally per-category |
 | `log [n]` | History (last n entries) |
 | `find <query>` | Fuzzy search across all categories |
-| `add <name> <qty> [--cat <c>] [--sub <s>] [--vendor <v>]` | Add item |
+| `add <name> <qty> [--cat <c>] [--sub <s>] [--vendor <v>] [--url <u>]` | Add item |
 | `remove <name> <qty>` | Reduce stock |
 | `use [name] [qty]` | Log session (defaults to last used item + session size) |
 | `delete <name>` | Remove item entirely |
 | `price <name> <$/g>` | Set per-gram price |
 | `price <name> bag <g> <$>` | Set bag price |
-| `order <name> <qty>` | Place local order |
+| `order <name> <qty> [--local]` | Place order (remote checkout if URL set, --local to skip) |
 | `orders [n]` | View local orders |
 | `orders --remote [id]` | View remote orders from greenland account |
+| `confirm <url\|order-id>` | Scrape order confirmation page and display receipt |
 | `login` | Authenticate with greenland (Puppeteer + WooCommerce) |
 | `account` | Show remote account dashboard |
 | `config session <qty>` | Set default session size |
@@ -34,17 +35,18 @@ Each has subcategories defined in config.json. Units: g (flower/extracts/mushroo
 ## Data Model
 
 Items: `{ name, quantity, category, subcategory, vendor, unit, prices, dateAdded, url }`
-Old items with `strain` field are auto-migrated to `name` on load with `category: "flower"`.
+Old items with `strain` field are auto-migrated to `name` on load with `category: "flower"`. The `strain` field is deleted after migration.
+Orders with remote checkout get `status: 'confirmed'`, `remoteOrderId`, and `confirmationUrl`.
 
 ## Files
 
 - `index.js` -- all CLI logic
-- `scraper.js` -- Puppeteer: login, account, remote orders, live category scraping
+- `scraper.js` -- Puppeteer: login, account, remote orders, live category scraping, checkout, confirmation scraping
 - `config.json` -- session size, root URL, category tree
 - `data.json` -- inventory + history
 - `orders.json` -- local order log
 - `users.json` -- auth config (requireAuth: false by default)
-- `.env` -- GB_USERNAME, GB_PASSWORD (gitignored)
+- `.env` -- GB_USERNAME, GB_PASSWORD, GB_NAME, GB_ADDRESS, GB_CITY, GB_PROVINCE, GB_POSTAL, GB_PHONE, GB_EMAIL (gitignored)
 - `session.json` -- saved cookies after login (gitignored)
 - `test.js` -- 40 CLI tests (node --test)
 
