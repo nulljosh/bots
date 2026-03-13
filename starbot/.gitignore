@@ -1,0 +1,6 @@
+.env
+.session.json
+all-cookies.json
+storage-dump.json
+node_modules/
+debug.png

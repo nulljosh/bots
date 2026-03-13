@@ -92,8 +92,8 @@ function normalizeItem(item, cfg) {
   if (!migrated.strain) migrated.strain = migrated.name;
   return migrated;
 }
-function loadData() {
-  const cfg = loadConfig();
+function loadData(cfg) {
+  if (!cfg) cfg = loadConfig();
   try {
     const parsed = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
     if (!Array.isArray(parsed.inventory) || !Array.isArray(parsed.history)) return { inventory: [], history: [] };
@@ -274,7 +274,6 @@ function addItem(data, cfg, name, quantity, options = {}) {
   } else {
     data.inventory.push({
       name,
-      strain: name,
       quantity,
       category,
       subcategory: options.subcategory ?? null,
@@ -285,7 +284,7 @@ function addItem(data, cfg, name, quantity, options = {}) {
       url: null
     });
   }
-  data.history.push({ action: 'add', name, strain: name, quantity, unit, timestamp: new Date().toISOString() });
+  data.history.push({ action: 'add', name, quantity, unit, timestamp: new Date().toISOString() });
   saveData(data);
   const item = data.inventory.find(i => i.name.toLowerCase() === name.toLowerCase());
   console.log(`Added ${quantity}${item.unit} of ${item.name}. Now have ${item.quantity}${item.unit}.`);
@@ -507,8 +506,8 @@ function showLog(data, limit) {
 
 async function main() {
   const args = process.argv.slice(2);
-  const data = loadData();
   const cfg = loadConfig();
+  const data = loadData(cfg);
   const command = args[0] || 'list';
   const rest = args.slice(1);
 
