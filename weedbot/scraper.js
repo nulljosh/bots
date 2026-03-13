@@ -14,6 +14,60 @@ function getRootUrl() { return loadConfig().rootUrl || 'https://greenlandbotanic
 function saveCookies(cookies) { fs.writeFileSync(sessionPath, JSON.stringify(cookies, null, 2)); }
 function loadCookies() { try { return JSON.parse(fs.readFileSync(sessionPath, 'utf8')); } catch { return null; } }
 
+/**
+ * Scrapes a WooCommerce order confirmation/receipt page.
+ * Intended to run inside page.evaluate() -- pure DOM access, no closures.
+ */
+function scrapeReceiptFromDOM() {
+  const text = sel => document.querySelector(sel)?.innerText?.trim() || '';
+
+  const orderNumber = text('.woocommerce-order-overview__order strong') ||
+    (document.querySelector('.woocommerce-order-overview__order')?.innerText?.match(/(\d+)/) || [])[1] || '';
+  const date = text('.woocommerce-order-overview__date strong') ||
+    (document.querySelector('.woocommerce-order-overview__date')?.innerText?.match(/:\s*(.+)/) || [])[1] || '';
+  const email = text('.woocommerce-order-overview__email strong') ||
+    (document.querySelector('.woocommerce-order-overview__email')?.innerText?.match(/:\s*(.+)/) || [])[1] || '';
+  const total = text('.woocommerce-order-overview__total strong .woocommerce-Price-amount') ||
+    text('.woocommerce-order-overview__total strong') || '';
+  const paymentMethod = text('.woocommerce-order-overview__payment-method strong') ||
+    (document.querySelector('.woocommerce-order-overview__payment-method')?.innerText?.match(/:\s*(.+)/) || [])[1] || '';
+
+  const items = [];
+  document.querySelectorAll('.woocommerce-table--order-details tbody .order_item, .woocommerce-table--order-details tbody tr').forEach(row => {
+    const name = row.querySelector('.product-name')?.childNodes[0]?.textContent?.trim() || row.querySelector('.product-name')?.innerText?.trim() || '';
+    const qtyMatch = row.querySelector('.product-name .product-quantity')?.innerText?.match(/(\d+)/) || [];
+    const qty = parseInt(qtyMatch[1], 10) || 1;
+    const itemTotal = row.querySelector('.product-total .woocommerce-Price-amount')?.innerText?.trim() ||
+      row.querySelector('.product-total')?.innerText?.trim() || '';
+    if (name) items.push({ name: name.replace(/\s*×\s*\d+$/, '').trim(), qty, total: itemTotal });
+  });
+
+  const subtotal = text('.woocommerce-table--order-details tfoot tr:first-child td') || '';
+  const shipping = (() => {
+    const rows = document.querySelectorAll('.woocommerce-table--order-details tfoot tr');
+    for (const r of rows) {
+      const label = r.querySelector('th')?.innerText?.trim() || '';
+      if (/shipping/i.test(label)) return r.querySelector('td')?.innerText?.trim() || '';
+    }
+    return '';
+  })();
+
+  let deliveryDate = '';
+  let deliveryTime = '';
+  let oosPreference = '';
+  document.querySelectorAll('.woocommerce-table--order-details tfoot tr, .woocommerce-order-overview li').forEach(el => {
+    const label = (el.querySelector('th') || el.querySelector('strong'))?.innerText?.trim().toLowerCase() || '';
+    const val = el.querySelector('td')?.innerText?.trim() || el.querySelector('span')?.innerText?.trim() || '';
+    if (label.includes('delivery date') || label.includes('date')) {
+      if (!deliveryDate && val && /\w+ \d+/.test(val)) deliveryDate = val;
+    }
+    if (label.includes('time')) deliveryTime = val;
+    if (label.includes('out of stock') || label.includes('oos')) oosPreference = val;
+  });
+
+  return { orderNumber, date, email, total, paymentMethod, shipping, deliveryDate, deliveryTime, items, subtotal, oosPreference };
+}
+
 export async function login() {
   const username = process.env.GB_USERNAME;
   const password = process.env.GB_PASSWORD;
@@ -131,57 +185,7 @@ export async function scrapeConfirmation(url) {
 
   await page.goto(url, { waitUntil: 'networkidle2' });
 
-  const receipt = await page.evaluate(() => {
-    const text = sel => document.querySelector(sel)?.innerText?.trim() || '';
-
-    const orderNumber = text('.woocommerce-order-overview__order strong') ||
-      (document.querySelector('.woocommerce-order-overview__order')?.innerText?.match(/(\d+)/) || [])[1] || '';
-    const date = text('.woocommerce-order-overview__date strong') ||
-      (document.querySelector('.woocommerce-order-overview__date')?.innerText?.match(/:\s*(.+)/) || [])[1] || '';
-    const email = text('.woocommerce-order-overview__email strong') ||
-      (document.querySelector('.woocommerce-order-overview__email')?.innerText?.match(/:\s*(.+)/) || [])[1] || '';
-    const total = text('.woocommerce-order-overview__total strong .woocommerce-Price-amount') ||
-      text('.woocommerce-order-overview__total strong') || '';
-    const paymentMethod = text('.woocommerce-order-overview__payment-method strong') ||
-      (document.querySelector('.woocommerce-order-overview__payment-method')?.innerText?.match(/:\s*(.+)/) || [])[1] || '';
-
-    const items = [];
-    document.querySelectorAll('.woocommerce-table--order-details tbody .order_item, .woocommerce-table--order-details tbody tr').forEach(row => {
-      const name = row.querySelector('.product-name')?.childNodes[0]?.textContent?.trim() || row.querySelector('.product-name')?.innerText?.trim() || '';
-      const qtyMatch = row.querySelector('.product-name .product-quantity')?.innerText?.match(/(\d+)/) || [];
-      const qty = parseInt(qtyMatch[1], 10) || 1;
-      const itemTotal = row.querySelector('.product-total .woocommerce-Price-amount')?.innerText?.trim() ||
-        row.querySelector('.product-total')?.innerText?.trim() || '';
-      if (name) items.push({ name: name.replace(/\s*×\s*\d+$/, '').trim(), qty, total: itemTotal });
-    });
-
-    const subtotal = text('.woocommerce-table--order-details tfoot tr:first-child td') || '';
-    const shipping = text('.woocommerce-table--order-details tfoot .shipping td') ||
-      (() => {
-        const rows = document.querySelectorAll('.woocommerce-table--order-details tfoot tr');
-        for (const r of rows) {
-          const label = r.querySelector('th')?.innerText?.trim() || '';
-          if (/shipping/i.test(label)) return r.querySelector('td')?.innerText?.trim() || '';
-        }
-        return '';
-      })();
-
-    let deliveryDate = '';
-    let deliveryTime = '';
-    let oosPreference = '';
-    document.querySelectorAll('.woocommerce-table--order-details tfoot tr, .woocommerce-order-overview li').forEach(el => {
-      const label = (el.querySelector('th') || el.querySelector('strong'))?.innerText?.trim().toLowerCase() || '';
-      const val = el.querySelector('td')?.innerText?.trim() || el.querySelector('span')?.innerText?.trim() || '';
-      if (label.includes('delivery date') || label.includes('date')) {
-        if (!deliveryDate && val && /\w+ \d+/.test(val)) deliveryDate = val;
-      }
-      if (label.includes('time')) deliveryTime = val;
-      if (label.includes('out of stock') || label.includes('oos')) oosPreference = val;
-    });
-
-    return { orderNumber, date, email, total, paymentMethod, shipping, deliveryDate, deliveryTime, items, subtotal, oosPreference };
-  });
-
+  const receipt = await page.evaluate(scrapeReceiptFromDOM);
   await browser.close();
   return receipt;
 }
@@ -284,55 +288,7 @@ export async function placeRemoteOrder(productUrl, quantity, options = {}) {
 
   const confirmationUrl = page.url();
 
-  // Scrape the confirmation page
-  const receipt = await page.evaluate(() => {
-    const text = sel => document.querySelector(sel)?.innerText?.trim() || '';
-
-    const orderNumber = text('.woocommerce-order-overview__order strong') ||
-      (document.querySelector('.woocommerce-order-overview__order')?.innerText?.match(/(\d+)/) || [])[1] || '';
-    const date = text('.woocommerce-order-overview__date strong') ||
-      (document.querySelector('.woocommerce-order-overview__date')?.innerText?.match(/:\s*(.+)/) || [])[1] || '';
-    const email = text('.woocommerce-order-overview__email strong') ||
-      (document.querySelector('.woocommerce-order-overview__email')?.innerText?.match(/:\s*(.+)/) || [])[1] || '';
-    const total = text('.woocommerce-order-overview__total strong .woocommerce-Price-amount') ||
-      text('.woocommerce-order-overview__total strong') || '';
-    const paymentMethod = text('.woocommerce-order-overview__payment-method strong') ||
-      (document.querySelector('.woocommerce-order-overview__payment-method')?.innerText?.match(/:\s*(.+)/) || [])[1] || '';
-
-    const items = [];
-    document.querySelectorAll('.woocommerce-table--order-details tbody .order_item, .woocommerce-table--order-details tbody tr').forEach(row => {
-      const name = row.querySelector('.product-name')?.childNodes[0]?.textContent?.trim() || row.querySelector('.product-name')?.innerText?.trim() || '';
-      const qtyMatch = row.querySelector('.product-name .product-quantity')?.innerText?.match(/(\d+)/) || [];
-      const qty = parseInt(qtyMatch[1], 10) || 1;
-      const itemTotal = row.querySelector('.product-total .woocommerce-Price-amount')?.innerText?.trim() ||
-        row.querySelector('.product-total')?.innerText?.trim() || '';
-      if (name) items.push({ name: name.replace(/\s*×\s*\d+$/, '').trim(), qty, total: itemTotal });
-    });
-
-    const subtotal = text('.woocommerce-table--order-details tfoot tr:first-child td') || '';
-    const shipping = (() => {
-      const rows = document.querySelectorAll('.woocommerce-table--order-details tfoot tr');
-      for (const r of rows) {
-        const label = r.querySelector('th')?.innerText?.trim() || '';
-        if (/shipping/i.test(label)) return r.querySelector('td')?.innerText?.trim() || '';
-      }
-      return '';
-    })();
-
-    let deliveryDate = '';
-    let deliveryTime = '';
-    let oosPreference = '';
-    document.querySelectorAll('.woocommerce-table--order-details tfoot tr').forEach(el => {
-      const label = el.querySelector('th')?.innerText?.trim().toLowerCase() || '';
-      const val = el.querySelector('td')?.innerText?.trim() || '';
-      if (label.includes('delivery date')) deliveryDate = val;
-      if (label.includes('time')) deliveryTime = val;
-      if (label.includes('out of stock') || label.includes('oos')) oosPreference = val;
-    });
-
-    return { orderNumber, date, email, total, paymentMethod, shipping, deliveryDate, deliveryTime, items, subtotal, oosPreference };
-  });
-
+  const receipt = await page.evaluate(scrapeReceiptFromDOM);
   receipt.confirmationUrl = confirmationUrl;
   await browser.close();
   return receipt;

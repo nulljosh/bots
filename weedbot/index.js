@@ -342,20 +342,30 @@ function printReceipt(receipt) {
   console.log('--------------------');
 }
 
-function placeOrderLocal(data, item, quantity) {
-  const price = getPrice(item, quantity);
-  const order = {
-    id: Date.now(),
-    name: item.name,
-    quantity,
-    unit: item.unit,
-    price,
-    status: 'pending',
-    placedAt: new Date().toISOString()
-  };
+function resolveConfirmationUrl(target) {
+  if (target.startsWith('http')) return target;
+  const orders = loadOrders();
+  const match = orders.find(o => String(o.id) === target || String(o.remoteOrderId) === target);
+  if (!match || !match.confirmationUrl) {
+    console.error(`No confirmation URL found for order: ${target}`);
+    process.exit(1);
+  }
+  return match.confirmationUrl;
+}
+
+function appendOrder(fields) {
+  const order = { id: Date.now(), placedAt: new Date().toISOString(), ...fields };
   const orders = loadOrders();
   orders.push(order);
   saveOrders(orders);
+  return order;
+}
+
+function placeOrderLocal(data, item, quantity) {
+  const price = getPrice(item, quantity);
+  const order = appendOrder({
+    name: item.name, quantity, unit: item.unit, price, status: 'pending'
+  });
   console.log(`Order placed: ${quantity}${item.unit} of ${item.name}`);
   if (price != null) console.log(`  Price: ${formatPrice(price)}`);
   else console.log('  Price: not set for this quantity');
@@ -377,29 +387,18 @@ async function placeOrder(data, itemArgs) {
     return;
   }
 
-  // Remote checkout
   console.log(`Placing remote order: ${parsed.quantity}x ${item.name}...`);
   try {
     const { placeRemoteOrder } = await import('./scraper.js');
     const receipt = await placeRemoteOrder(item.url, parsed.quantity);
     printReceipt(receipt);
 
-    // Save order locally with confirmation
     const price = getPrice(item, parsed.quantity);
-    const order = {
-      id: Date.now(),
-      name: item.name,
-      quantity: parsed.quantity,
-      unit: item.unit,
-      price,
-      status: 'confirmed',
-      remoteOrderId: receipt.orderNumber,
-      confirmationUrl: receipt.confirmationUrl,
-      placedAt: new Date().toISOString()
-    };
-    const orders = loadOrders();
-    orders.push(order);
-    saveOrders(orders);
+    appendOrder({
+      name: item.name, quantity: parsed.quantity, unit: item.unit, price,
+      status: 'confirmed', remoteOrderId: receipt.orderNumber,
+      confirmationUrl: receipt.confirmationUrl
+    });
   } catch (err) {
     console.error('Remote order failed: ' + err.message);
     console.log('Falling back to local order...');
@@ -664,18 +663,7 @@ async function main() {
     case 'confirm': {
       if (!cleanRest.length) { console.error('Usage: weed confirm <url|order-id>'); process.exit(1); }
       const target = cleanRest.join(' ');
-      let confirmUrl;
-      if (target.startsWith('http')) {
-        confirmUrl = target;
-      } else {
-        const orders = loadOrders();
-        const match = orders.find(o => String(o.id) === target || String(o.remoteOrderId) === target);
-        if (!match || !match.confirmationUrl) {
-          console.error(`No confirmation URL found for order: ${target}`);
-          process.exit(1);
-        }
-        confirmUrl = match.confirmationUrl;
-      }
+      const confirmUrl = resolveConfirmationUrl(target);
       const { scrapeConfirmation } = await import('./scraper.js');
       const receipt = await scrapeConfirmation(confirmUrl);
       printReceipt(receipt);
