@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node index.js price \"Mystery Budget Ounces AA\" bag 28 60)"
+    ]
+  }
+}

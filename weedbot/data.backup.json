@@ -2,7 +2,7 @@
   "inventory": [
     {
       "strain": "OG Kush",
-      "quantity": 6.5,
+      "quantity": 6,
       "dateAdded": "2026-02-15T10:22:00.000Z",
       "name": "OG Kush",
       "category": "flower",
@@ -167,6 +167,17 @@
       "prices": {},
       "dateAdded": "2026-03-13T08:46:54.016Z",
       "url": null
+    },
+    {
+      "name": "Mystery Budget Ounces AA",
+      "quantity": 28,
+      "category": "flower",
+      "subcategory": "aa",
+      "vendor": "greenland",
+      "unit": "g",
+      "prices": {},
+      "dateAdded": "2026-03-13T18:55:46.595Z",
+      "url": "https://greenlandbotanicals.cc/product/mystery-budget-ounces-aa-grade/"
     }
   ],
   "history": [
@@ -321,6 +332,21 @@
       "quantity": 1080,
       "unit": "mg",
       "timestamp": "2026-03-13T08:46:54.016Z"
+    },
+    {
+      "action": "use",
+      "name": "OG Kush",
+      "strain": "OG Kush",
+      "quantity": 0.5,
+      "unit": "g",
+      "timestamp": "2026-03-13T08:47:00.078Z"
+    },
+    {
+      "action": "add",
+      "name": "Mystery Budget Ounces AA",
+      "quantity": 28,
+      "unit": "g",
+      "timestamp": "2026-03-13T18:55:46.596Z"
     }
   ]
 }
